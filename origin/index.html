@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>轮田：播种抗灾肉鸽原型 v5 手机可见修复</title>
+  <style>
+    :root{
+      --bg:#f5efe3;
+      --paper:#fff9ed;
+      --paper-2:#f6e8ca;
+      --ink:#2d251b;
+      --muted:#76644b;
+      --line:#d9c39d;
+      --accent:#7a4f1d;
+      --green:#34794a;
+      --green-2:#65a86f;
+      --blue:#317097;
+      --danger:#b44935;
+      --warn:#b57622;
+      --good:#3f7a35;
+      --shadow:0 10px 26px rgba(60,40,18,.16);
+      --radius:18px;
+      --tap:48px;
+      font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", "Hiragino Sans GB", "Microsoft Yahei", system-ui, sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; }
+    body{
+      margin:0;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% -10%, rgba(255,255,255,.95), transparent 28rem),
+        radial-gradient(circle at 95% 0%, rgba(136,188,117,.2), transparent 24rem),
+        linear-gradient(180deg, #f8f0df, var(--bg));
+      overscroll-behavior:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    button{ font:inherit; color:inherit; }
+    .app{
+      width:min(1160px,100%);
+      margin:0 auto;
+      padding:max(10px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:6px 2px 0; }
+    .title{ display:flex; align-items:center; gap:9px; min-width:0; }
+    .title h1{ font-size:clamp(22px,5vw,34px); margin:0; letter-spacing:.02em; line-height:1.05; white-space:nowrap; }
+    .title small{ display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+    .top-actions{ display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+    .ghost-btn,.primary-btn,.danger-btn,.soft-btn{
+      min-height:var(--tap);
+      border:1px solid var(--line);
+      background:rgba(255,249,237,.82);
+      border-radius:999px;
+      padding:0 14px;
+      box-shadow:0 2px 0 rgba(80,50,20,.08);
+      cursor:pointer;
+      touch-action:manipulation;
+      font-weight:800;
+    }
+    .soft-btn{ min-height:38px; padding:0 12px; font-size:12px; background:#f3e2c3; }
+    .primary-btn{ border-color:#6e9b61; background:linear-gradient(180deg, #62aa70, #3d7e4e); color:white; box-shadow:0 4px 12px rgba(61,126,78,.25); }
+    .danger-btn{ border-color:#b45d4f; background:#fff5f0; color:#913827; }
+    .ghost-btn:active,.primary-btn:active,.danger-btn:active,.soft-btn:active{ transform:translateY(1px); }
+    .primary-btn:disabled,.ghost-btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+    .objective-card{
+      display:grid;
+      grid-template-columns:1.25fr 1fr auto;
+      gap:10px;
+      align-items:stretch;
+      background:rgba(255,249,237,.92);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:10px;
+      box-shadow:var(--shadow);
+    }
+    .goal-main{ display:flex; gap:10px; align-items:center; min-width:0; }
+    .goal-icon{ width:44px; height:44px; border-radius:16px; display:grid; place-items:center; background:#e4f0d7; font-size:25px; flex-shrink:0; box-shadow:inset 0 0 0 1px #cfe0bc; }
+    .goal-main b{ font-size:16px; display:block; line-height:1.18; }
+    .goal-main span{ display:block; color:var(--muted); font-size:12px; margin-top:3px; line-height:1.35; }
+    .focus-list{ margin:0; padding:0; list-style:none; display:grid; gap:5px; }
+    .focus-list li{ display:flex; gap:6px; align-items:flex-start; color:#574631; font-size:12px; line-height:1.34; background:#fff6e8; border:1px solid #ead5ad; padding:6px 8px; border-radius:12px; }
+    .focus-list li::before{ content:"•"; font-weight:900; color:var(--green); }
+    .quick-rules{ display:grid; align-content:center; justify-items:end; gap:6px; }
+    .mini-rule{ font-size:11px; line-height:1.35; color:#6b573a; text-align:right; max-width:170px; }
+
+    .stats{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:8px; }
+    .stat{ background:rgba(255,249,237,.86); border:1px solid var(--line); border-radius:16px; padding:9px 10px; box-shadow:0 4px 14px rgba(60,40,18,.08); min-width:0; position:relative; overflow:hidden; }
+    .stat .k{ color:var(--muted); font-size:11px; display:flex; align-items:center; justify-content:space-between; gap:6px; }
+    .stat .v{ font-size:18px; font-weight:950; line-height:1.15; margin-top:2px; white-space:nowrap; }
+    .stat.bump{ animation:statBump .45s ease; }
+    .bar{ width:100%; height:8px; background:#ead8b9; border-radius:999px; overflow:hidden; margin-top:7px; box-shadow:inset 0 1px 2px rgba(0,0,0,.12); }
+    .bar > span{ display:block; height:100%; width:0%; background:linear-gradient(90deg,#6ea952,#dbb24a); border-radius:999px; transition:width .35s ease; }
+    .bar.danger > span{ background:linear-gradient(90deg,#d19a31,#bd4534); }
+
+    .main{ display:grid; grid-template-columns:minmax(0, 1fr) 370px; gap:12px; align-items:start; }
+    .board-wrap{ background:rgba(255,249,237,.72); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); padding:12px; position:relative; overflow:hidden; }
+    .board-wrap::before{ content:""; position:absolute; inset:-45%; background:radial-gradient(circle, rgba(134,91,38,.08) 0 2px, transparent 2px 18px); transform:rotate(8deg); pointer-events:none; }
+    .board-label{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 auto 8px; max-width:630px; }
+    .board-label b{ font-size:14px; }
+    .board-label span{ color:var(--muted); font-size:12px; }
+    .board{ position:relative; z-index:1; width:100%; max-width:630px; margin:0 auto; display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); grid-template-areas:". p0 p0 ." "p5 p5 p1 p1" "p4 p4 p2 p2" ". p3 p3 ."; gap:8px; }
+    .plot{ border:2px solid #cdb486; background:linear-gradient(180deg, #fffaf0, #f4e2c0); min-height:154px; border-radius:18px; padding:9px; box-shadow:0 5px 0 rgba(95,61,25,.12), 0 12px 18px rgba(70,40,10,.08); display:flex; flex-direction:column; justify-content:space-between; position:relative; cursor:pointer; touch-action:manipulation; text-align:left; overflow:hidden; transition:transform .15s ease, border-color .16s ease, box-shadow .16s ease, filter .16s ease, background .16s ease; }
+    .plot:disabled{ cursor:not-allowed; opacity:.72; filter:saturate(.8); }
+    .plot.selected{ border-color:#2e7d4f; box-shadow:0 0 0 4px rgba(46,125,79,.16), 0 5px 0 rgba(95,61,25,.12); transform:translateY(-2px); }
+    .plot.path{ border-color:#d39b31; box-shadow:0 0 0 4px rgba(211,155,49,.15), 0 5px 0 rgba(95,61,25,.12); }
+    .plot.last{ border-color:#b44935; box-shadow:0 0 0 4px rgba(180,73,53,.18), 0 5px 0 rgba(95,61,25,.12); }
+    .plot.overflow{ background:linear-gradient(180deg, #fff5ed, #eed1be); }
+    .plot.fx-seed{ animation:seedPulse .5s ease; }
+    .plot.fx-sprout{ animation:sproutPulse .55s ease; }
+    .plot.fx-harvest{ animation:harvestPulse .65s ease; }
+    .plot.fx-bad,.plot.fx-disaster{ animation:shake .38s ease; }
+    .plot.fx-new{ animation:newCrop .55s ease; }
+    .plot:active{ transform:scale(.99); }
+    .plot[data-pos="0"]{ grid-area:p0; }
+    .plot[data-pos="1"]{ grid-area:p1; }
+    .plot[data-pos="2"]{ grid-area:p2; }
+    .plot[data-pos="3"]{ grid-area:p3; }
+    .plot[data-pos="4"]{ grid-area:p4; }
+    .plot[data-pos="5"]{ grid-area:p5; }
+    .plot-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+    .crop-name{ font-weight:950; font-size:17px; line-height:1.1; }
+    .tags{ display:flex; flex-wrap:wrap; gap:3px; margin-top:5px; }
+    .tag{ font-size:10px; padding:2px 6px; border-radius:999px; background:#ead8b9; color:#614a2b; }
+    .hazard{ font-size:11px; padding:4px 6px; border-radius:999px; color:#702c1f; background:#ffe4d6; border:1px solid #ebb59d; white-space:nowrap; font-weight:900; }
+    .hazard.clean{ color:#55704a; background:#eff8e8; border-color:#c9dfbc; }
+    .hazard.frozen{ color:#215a81; background:#e5f4ff; border-color:#b7daf2; }
+    .seed-row{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:7px 0 5px; }
+    .seed-badge,.mini-badge{ display:inline-flex; align-items:center; justify-content:center; gap:3px; min-height:25px; padding:2px 7px; border-radius:999px; background:#fff7e5; border:1px solid #e7cf9e; font-weight:950; font-size:13px; }
+    .mini-badge{ font-size:11px; min-height:22px; padding:1px 6px; font-weight:850; color:#5d4b35; }
+    .mini-badge.water{ background:#e9f6ff; border-color:#bad9ef; color:#315e7b; }
+    .mini-badge.bonus{ background:#eff8e8; border-color:#cbe5bf; color:#3f7437; }
+    .mini-badge.bad{ background:#fff1ea; border-color:#efc0aa; color:#91402e; }
+    .seed-dots{ display:flex; flex-wrap:wrap; gap:4px; min-height:19px; margin:3px 0 5px; align-items:center; }
+    .seed-dots span{ width:10px; height:10px; border-radius:50%; background:radial-gradient(circle at 30% 25%, #fff7ac, #7eb44d 58%, #4c7f31); box-shadow:0 1px 0 rgba(0,0,0,.15); animation:seedBorn .35s ease both; }
+    .seed-dots b{ font-size:10px; color:#6a5537; }
+    .effect{ color:#4a3a26; font-size:11px; line-height:1.25; display:grid; gap:3px; }
+    .effect b{ color:#23180f; }
+    .plot-index{ position:absolute; right:7px; bottom:5px; font-size:10px; color:#9b835c; font-weight:900; opacity:.8; }
+    .float-text{ position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); pointer-events:none; z-index:6; white-space:nowrap; padding:4px 8px; border-radius:999px; font-size:13px; font-weight:950; background:rgba(255,250,235,.94); border:1px solid #dfc99f; box-shadow:0 8px 22px rgba(50,30,10,.18); animation:floatUp .72s ease forwards; }
+    .float-text.good{ color:#2d6f37; border-color:#b9dcae; background:#f0faed; }
+    .float-text.bad{ color:#973523; border-color:#efb6a6; background:#fff1eb; }
+    .float-text.warn{ color:#875714; border-color:#e8c47c; background:#fff8dd; }
+    .float-text.blue{ color:#276284; border-color:#b5d8ec; background:#eaf7ff; }
+
+    .side{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+    .panel{ background:rgba(255,249,237,.9); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); padding:12px; }
+    .panel h2{ font-size:15px; margin:0 0 9px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .hint{ font-size:12px; color:var(--muted); line-height:1.45; }
+    .tutorial-panel{ border-color:#bed7a8; background:linear-gradient(180deg,#fbfff3,#fff9ed); }
+    .tutorial-step{ display:grid; gap:8px; }
+    .tutorial-step strong{ font-size:14px; }
+    .tutorial-step p{ margin:0; color:#54432c; font-size:13px; line-height:1.5; }
+    .tutorial-step .step-pill{ display:inline-flex; width:max-content; padding:4px 8px; border-radius:999px; background:#e4f0d7; color:#315d2c; font-weight:900; font-size:11px; }
+    .preview-box{ border:1px dashed #c7aa76; border-radius:16px; padding:10px; background:#fff6e6; min-height:118px; }
+    .preview-title{ font-weight:950; margin-bottom:6px; }
+    .preview-line{ font-size:13px; line-height:1.55; color:#493821; }
+    .preview-line strong{ color:#1e5f3c; }
+    .controls{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .controls .primary-btn{ grid-column:1 / -1; font-size:17px; }
+    .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin:8px 0 0; }
+    .seg{ display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:#f2dfbe; }
+    .seg button{ min-height:38px; padding:0 12px; border:0; background:transparent; cursor:pointer; font-weight:800; }
+    .seg button.on{ background:#70491d; color:white; font-weight:950; }
+    .tool-list{ display:flex; flex-wrap:wrap; gap:6px; }
+    .tool-chip{ border:1px solid #c6b087; background:#fff5df; border-radius:999px; padding:5px 8px; font-size:12px; font-weight:850; }
+    .log{ max-height:168px; overflow:auto; display:flex; flex-direction:column; gap:6px; padding-right:2px; -webkit-overflow-scrolling:touch; }
+    .log p{ margin:0; font-size:12px; line-height:1.38; color:#56442d; padding:7px 8px; background:#fff6e8; border:1px solid #eed8b5; border-radius:12px; }
+    .log p.good{ border-color:#c9e0bd; background:#f1faee; color:#315e2a; }
+    .log p.bad{ border-color:#efc3b4; background:#fff1eb; color:#813829; }
+    .log p.warn{ border-color:#e8cd92; background:#fff8dd; color:#76501b; }
+
+    .mobile-action-bar{ display:none; position:relative; z-index:3; background:rgba(255,249,237,.96); border:1px solid var(--line); border-radius:20px; box-shadow:0 8px 24px rgba(55,35,10,.18); padding:8px; gap:8px; margin-top:8px; }
+    .mobile-action-bar .primary-btn{ flex:1; font-size:17px; }
+    .mobile-action-bar .ghost-btn{ min-width:92px; }
+
+    .modal{ position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:16px; background:rgba(42,27,12,.45); backdrop-filter:blur(8px); }
+    .modal.show{ display:flex; }
+    .modal-card{ width:min(760px,100%); max-height:min(780px,92vh); overflow:auto; background:var(--paper); border:1px solid #dec99e; border-radius:24px; box-shadow:0 20px 60px rgba(30,18,8,.38); padding:16px; }
+    .modal-card h2{ margin:0 0 8px; font-size:22px; }
+    .modal-card p{ color:#5c4a34; line-height:1.55; margin:8px 0; }
+    .rule-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin:12px 0; }
+    .rule{ border:1px solid #e3cda3; background:#fff7e8; border-radius:15px; padding:10px; }
+    .rule b{ display:block; margin-bottom:4px; }
+    .rule span{ display:block; color:#5c4a34; font-size:12px; line-height:1.45; }
+    .reward-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .reward{ border:2px solid #d6bd8d; background:linear-gradient(180deg,#fffaf0,#f3dfbc); border-radius:18px; padding:12px; text-align:left; min-height:160px; display:flex; flex-direction:column; justify-content:space-between; gap:10px; cursor:pointer; box-shadow:0 5px 0 rgba(95,61,25,.12); transition:transform .15s ease, box-shadow .15s ease; }
+    .reward:active{ transform:translateY(2px); box-shadow:0 3px 0 rgba(95,61,25,.12); }
+    .reward strong{ font-size:17px; display:block; margin-bottom:5px; }
+    .reward span{ font-size:12px; line-height:1.45; color:#5c4a34; }
+    .reward em{ font-style:normal; color:#2e7d4f; font-weight:900; font-size:12px; }
+
+    @keyframes floatUp{ 0%{opacity:0; transform:translate(-50%,8px) scale(.88);} 18%{opacity:1; transform:translate(-50%,-8px) scale(1.05);} 100%{opacity:0; transform:translate(-50%,-42px) scale(.98);} }
+    @keyframes seedPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.025); box-shadow:0 0 0 5px rgba(113,168,77,.18),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
+    @keyframes sproutPulse{ 0%{filter:saturate(1);} 50%{filter:saturate(1.5) brightness(1.05); background:linear-gradient(180deg,#f5ffef,#e4f2c5);} 100%{filter:saturate(1);} }
+    @keyframes harvestPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.04); box-shadow:0 0 0 6px rgba(219,178,74,.24),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
+    @keyframes newCrop{ 0%{transform:scale(.96); filter:brightness(.94);} 100%{transform:scale(1); filter:brightness(1);} }
+    @keyframes shake{ 10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);} 30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);} }
+    @keyframes statBump{ 0%{background:#fff9ed;} 50%{background:#eff9e9;} 100%{background:#fff9ed;} }
+    @keyframes seedBorn{ from{ transform:scale(.35); opacity:.2; } to{ transform:scale(1); opacity:1; } }
+
+    @media (max-width:900px){
+      .topbar{ order:0; }
+      .stats{ order:1; }
+      .main{ order:2; }
+      .objective-card{ order:3; }
+      .main{ grid-template-columns:1fr; }
+      .side{ order:2; }
+      .stats{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+      .objective-card{ grid-template-columns:1fr; }
+      .quick-rules{ justify-items:start; grid-template-columns:1fr auto; align-items:center; }
+      .mini-rule{text-align:left; max-width:none;}
+      .mobile-action-bar{ display:flex; }
+      .side .panel.action-panel .controls{ display:none; }
+      .log{ max-height:138px; }
+    }
+    @media (max-width:560px){
+      .app{ padding-left:7px; padding-right:7px; gap:7px; }
+      .topbar{ align-items:center; padding-top:2px; gap:6px; }
+      .title{ gap:6px; }
+      .title h1{ font-size:22px; line-height:1; }
+      .title small{ display:none; }
+      .title [aria-hidden="true"]{ font-size:26px !important; }
+      .top-actions{ gap:4px; flex-wrap:nowrap; }
+      .ghost-btn,.danger-btn{ min-height:32px; padding:0 8px; font-size:12px; }
+      .stats{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; overflow:visible; padding-bottom:0; }
+      .stats .stat:nth-child(n+4){ display:none; }
+      .stat{ min-width:0; padding:6px 8px; border-radius:14px; }
+      .stat .k{ font-size:10px; }
+      .stat .v{ font-size:14px; }
+      .bar{ height:5px; margin-top:4px; }
+      .board-wrap{ padding:8px; border-radius:20px; overflow:visible; }
+      .board-label{ margin-bottom:6px; }
+      .board-label b{ font-size:13px; }
+      .board{ grid-template-columns:repeat(2, minmax(0,1fr)); grid-template-areas:"p0 p1" "p5 p2" "p4 p3"; gap:6px; max-width:430px; }
+      .plot{ min-height:114px; padding:7px; border-radius:15px; }
+      .crop-name{ font-size:15px; }
+      .effect{ font-size:10.5px; }
+      .seed-badge{ font-size:12px; min-height:24px; padding:1px 6px; }
+      .mini-badge{ font-size:10px; min-height:20px; padding:1px 5px; }
+      .hazard{ font-size:10px; padding:3px 5px; }
+      .panel{ padding:10px; border-radius:18px; }
+      .preview-box{ min-height:102px; }
+      .reward-grid,.rule-grid{ grid-template-columns:1fr; }
+      .reward{ min-height:unset; }
+      .modal-card{ padding:14px; border-radius:20px; }
+      .goal-main{ align-items:flex-start; }
+      .goal-icon{ width:34px; height:34px; border-radius:12px; font-size:20px; }
+      .goal-main b{ font-size:14px; }
+      .goal-main span{ font-size:11px; }
+      .objective-card{ padding:8px; border-radius:18px; box-shadow:0 6px 18px rgba(60,40,18,.10); }
+      .objective-card .focus-list{ display:none; }
+      .quick-rules{ grid-template-columns:1fr auto; justify-items:start; }
+      .quick-rules .mini-rule{ display:none; }
+      .soft-btn{ min-height:32px; padding:0 10px; }
+      .mobile-action-bar{ display:flex; position:relative; bottom:auto; left:auto; right:auto; margin-top:8px; padding:7px; border-radius:18px; backdrop-filter:none; }
+      .mobile-action-bar .primary-btn{ min-height:46px; }
+      .mobile-action-bar .ghost-btn{ min-height:46px; }
+      .seed-dots{ gap:3px; min-height:14px; margin:2px 0 3px; }
+      .seed-dots span{ width:8px; height:8px; }
+      .plot-index{ font-size:10px; }
+    }
+    @media (max-width:380px){
+      .plot{ min-height:104px; padding:6px; }
+      .crop-name{ font-size:14px; }
+      .effect{ display:none; }
+      .tags{ display:none; }
+      .hazard{ font-size:9.5px; }
+      .seed-badge{ min-height:21px; font-size:11px; }
+      .board-label span{ display:none; }
+      .stat{ min-width:100px; }
+      .top-actions .ghost-btn,.top-actions .danger-btn{ padding:0 7px; font-size:11px; }
+    }
+  
+
+    /* v4 手机首屏优化：田垄优先可见，卡片压缩为 2×3，详情下沉到预览区 */
+    @media (max-width:900px){
+      .mobile-action-bar{ display:none !important; }
+      body.has-selection .mobile-action-bar{ display:flex !important; }
+    }
+    @media (max-width:560px){
+      .app{ padding:6px 7px calc(80px + env(safe-area-inset-bottom)) !important; gap:6px !important; }
+      .topbar{ align-items:center !important; gap:6px !important; padding:0 !important; }
+      .title{ gap:6px !important; }
+      .title > div:first-child{ font-size:24px !important; }
+      .title h1{ font-size:21px !important; line-height:1 !important; }
+      .title small{ display:none !important; }
+      .top-actions{ display:grid !important; grid-template-columns:repeat(3, auto) !important; gap:4px !important; flex-wrap:nowrap !important; }
+      .top-actions .ghost-btn,.top-actions .danger-btn{ min-height:30px !important; padding:0 7px !important; font-size:11px !important; box-shadow:none !important; }
+
+      .stats{ display:grid !important; grid-template-columns:repeat(5,minmax(0,1fr)) !important; gap:4px !important; overflow:visible !important; padding-bottom:0 !important; }
+      .stat{ min-width:0 !important; min-height:42px !important; flex:initial !important; padding:5px 4px !important; border-radius:11px !important; box-shadow:0 2px 8px rgba(60,40,18,.07) !important; }
+      .stat .k{ display:block !important; font-size:9px !important; line-height:1.05 !important; }
+      .stat .v{ font-size:11.5px !important; line-height:1.12 !important; margin-top:2px !important; letter-spacing:-.03em !important; }
+      .bar{ height:4px !important; margin-top:3px !important; }
+
+      .main{ gap:6px !important; }
+      .board-wrap{ padding:6px !important; border-radius:16px !important; box-shadow:0 4px 14px rgba(60,40,18,.12) !important; overflow:visible !important; }
+      .board-label{ margin-bottom:4px !important; }
+      .board-label b{ font-size:12px !important; }
+      .board-label span{ display:none !important; }
+      .board{ max-width:430px !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; grid-template-areas:"p0 p1" "p5 p2" "p4 p3" !important; gap:5px !important; }
+      .plot{ min-height:88px !important; padding:5px !important; border-width:1.5px !important; border-radius:12px !important; box-shadow:0 3px 0 rgba(95,61,25,.10),0 6px 10px rgba(70,40,10,.06) !important; }
+      .plot.selected{ transform:none !important; box-shadow:0 0 0 3px rgba(46,125,79,.17),0 3px 0 rgba(95,61,25,.10) !important; }
+      .plot.path{ box-shadow:0 0 0 3px rgba(211,155,49,.15),0 3px 0 rgba(95,61,25,.10) !important; }
+      .plot.last{ box-shadow:0 0 0 3px rgba(180,73,53,.18),0 3px 0 rgba(95,61,25,.10) !important; }
+      .plot-top{ gap:4px !important; align-items:flex-start !important; }
+      .crop-name{ font-size:13px !important; line-height:1.05 !important; }
+      .tags,.effect{ display:none !important; }
+      .hazard{ max-width:68px !important; overflow:hidden !important; text-overflow:ellipsis !important; font-size:9px !important; padding:2px 4px !important; }
+      .seed-row{ margin:4px 0 2px !important; gap:3px !important; }
+      .seed-badge{ min-height:20px !important; padding:1px 5px !important; font-size:10.5px !important; }
+      .mini-badge{ min-height:17px !important; padding:1px 4px !important; font-size:9px !important; }
+      .seed-dots{ min-height:12px !important; gap:3px !important; margin:1px 0 0 !important; }
+      .seed-dots span{ width:7px !important; height:7px !important; }
+      .plot-index{ font-size:9px !important; right:5px !important; bottom:4px !important; }
+      .float-text{ font-size:11px !important; padding:3px 6px !important; }
+
+      .mobile-action-bar{ position:fixed !important; left:7px !important; right:7px !important; bottom:calc(6px + env(safe-area-inset-bottom)) !important; margin:0 !important; border-radius:18px !important; padding:7px !important; backdrop-filter:blur(12px) !important; }
+      .mobile-action-bar .primary-btn{ min-height:46px !important; font-size:16px !important; }
+      .mobile-action-bar .ghost-btn{ min-height:46px !important; min-width:78px !important; font-size:13px !important; }
+
+      .objective-card{ padding:7px !important; border-radius:15px !important; box-shadow:0 4px 12px rgba(60,40,18,.10) !important; }
+      .objective-card .focus-list{ display:block !important; }
+      .focus-list li{ display:none !important; padding:4px 6px !important; font-size:11px !important; line-height:1.18 !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+      .focus-list li:first-child{ display:flex !important; }
+      .goal-icon{ display:none !important; }
+      .goal-main b{ font-size:13px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+      .goal-main span{ font-size:11px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+      .mini-rule{ display:none !important; }
+      .quick-rules .soft-btn{ min-height:30px !important; padding:0 8px !important; font-size:11px !important; }
+
+      .side{ gap:7px !important; }
+      .panel{ padding:8px !important; border-radius:15px !important; }
+      .panel h2{ font-size:13px !important; margin-bottom:6px !important; }
+      .preview-box{ min-height:74px !important; padding:8px !important; }
+      .preview-line{ font-size:12px !important; line-height:1.35 !important; }
+      .tutorial-step p{ font-size:12px !important; line-height:1.35 !important; }
+      .log{ max-height:108px !important; }
+      .log p{ font-size:11px !important; padding:5px 6px !important; }
+    }
+    @media (max-width:380px){
+      .plot{ min-height:82px !important; }
+      .crop-name{ font-size:12.5px !important; }
+      .hazard{ max-width:60px !important; }
+      .top-actions .ghost-btn,.top-actions .danger-btn{ padding:0 6px !important; font-size:10.5px !important; }
+    }
+
+    /* v5：即使手机文件预览器延迟/禁用脚本，也先显示静态教学田垄 */
+    .js-fallback-note{
+      margin-top:7px;
+      padding:8px 10px;
+      border:1px dashed #d0b17c;
+      border-radius:14px;
+      background:#fff7e8;
+      color:#665034;
+      font-size:12px;
+      line-height:1.45;
+    }
+    body.js-ready .js-fallback-note{ display:none; }
+    @media (max-width:560px){
+      .js-fallback-note{ font-size:11px; padding:6px 8px; margin-top:5px; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <div aria-hidden="true" style="font-size:32px">🌾</div>
+        <div><h1>轮田</h1><small>播种抗灾肉鸽卡牌 · 手机田垄修复版</small></div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost-btn" id="helpBtn">规则</button>
+        <button class="ghost-btn" id="tutorialBtn">教学</button>
+        <button class="danger-btn" id="restartBtn">重开</button>
+      </div>
+    </header>
+
+    <section class="objective-card" aria-label="当前目标">
+      <div class="goal-main">
+        <div class="goal-icon" id="goalIcon">🌾</div>
+        <div><b id="currentGoal">把粮仓填满</b><span id="goalSub">点一垄预览路线，再确认播种。</span></div>
+      </div>
+      <ul class="focus-list" id="focusList"></ul>
+      <div class="quick-rules">
+        <div class="mini-rule">短规则：抓起一垄种子 → 沿环播下 → 途经发芽 → 落点收成。</div>
+        <button class="soft-btn" id="quickRuleBtn">速览规则</button>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="核心状态">
+      <div class="stat" id="grainStat"><div class="k">目标 <span id="stageText">教学</span></div><div class="v" id="targetText">粮仓 0/14</div><div class="bar"><span id="grainBar" style="width:0%"></span></div></div>
+      <div class="stat" id="fenceStat"><div class="k">篱笆</div><div class="v" id="fenceText">10/10</div><div class="bar danger"><span id="fenceBar" style="width:100%"></span></div></div>
+      <div class="stat" id="seasonStat"><div class="k">季节轮</div><div class="v" id="seasonText">0/10</div><div class="bar danger"><span id="seasonBar" style="width:0%"></span></div></div>
+      <div class="stat" id="ecoStat"><div class="k">生态资源</div><div class="v" id="ecoText">蜂0 腐0</div></div>
+      <div class="stat"><div class="k">牌库 / 弃牌</div><div class="v" id="deckText">5 / 0</div></div>
+    </section>
+
+    <main class="main">
+      <section class="board-wrap" aria-label="田环">
+        <div class="board-label"><b id="boardPhase">选择一垄开始播种</b><span>高亮路线会逐步结算，别急着看日志。</span></div>
+        <div class="board" id="board">
+          <button type="button" class="plot" data-pos="0">
+            <div><div class="plot-top"><div><div class="crop-name">壳麦</div><div class="tags"><span class="tag">粮</span></div></div><span class="hazard clean">净田</span></div><div class="seed-row"><span class="seed-badge">🌱 2/5</span></div><div class="seed-dots"><span></span><span></span></div></div>
+            <div class="effect"><div><b>发芽</b> 粮仓 +1。</div><div><b>收成</b> 粮仓 + 本垄种子×2。</div></div><span class="plot-index">1</span>
+          </button>
+          <button type="button" class="plot" data-pos="1">
+            <div><div class="plot-top"><div><div class="crop-name">蓄水莲</div><div class="tags"><span class="tag">水</span></div></div><span class="hazard">☀️旱斑1</span></div><div class="seed-row"><span class="seed-badge">🌱 1/4</span></div><div class="seed-dots"><span></span></div></div>
+            <div class="effect"><div><b>发芽</b> 本垄蓄水 +1。</div><div><b>收成</b> 用蓄水清除旱斑。</div><div><b>田患</b> 缺水会伤篱笆。</div></div><span class="plot-index">2</span>
+          </button>
+          <button type="button" class="plot" data-pos="2">
+            <div><div class="plot-top"><div><div class="crop-name">驱虫菊</div><div class="tags"><span class="tag">花</span></div></div><span class="hazard">🐛虫害1</span></div><div class="seed-row"><span class="seed-badge">🌱 0/3</span></div><div class="seed-dots"></div></div>
+            <div class="effect"><div><b>发芽</b> 清除本垄 1 点虫害。</div><div><b>收成</b> 清除相邻虫害。</div><div><b>田患</b> 虫害会吃种子。</div></div><span class="plot-index">3</span>
+          </button>
+          <button type="button" class="plot" data-pos="3">
+            <div><div class="plot-top"><div><div class="crop-name">稻草人</div><div class="tags"><span class="tag">器具</span></div></div><span class="hazard">🐦鸟群1</span></div><div class="seed-row"><span class="seed-badge">🌱 1/2</span></div><div class="seed-dots"><span></span></div></div>
+            <div class="effect"><div><b>发芽</b> 驱赶本垄鸟群。</div><div><b>收成</b> 本季鸟害削弱。</div><div><b>田患</b> 鸟群会偷粮。</div></div><span class="plot-index">4</span>
+          </button>
+          <button type="button" class="plot" data-pos="4">
+            <div><div class="plot-top"><div><div class="crop-name">蜜花</div><div class="tags"><span class="tag">花</span><span class="tag">蜜</span></div></div><span class="hazard clean">净田</span></div><div class="seed-row"><span class="seed-badge">🌱 1/3</span></div><div class="seed-dots"><span></span></div></div>
+            <div class="effect"><div><b>发芽</b> 蜂群 +1。</div><div><b>收成</b> 按蜂群数量入粮。</div></div><span class="plot-index">5</span>
+          </button>
+          <button type="button" class="plot" data-pos="5">
+            <div><div class="plot-top"><div><div class="crop-name">野豌豆</div><div class="tags"><span class="tag">豆</span></div></div><span class="hazard">🌿杂草1</span></div><div class="seed-row"><span class="seed-badge">🌱 2/2</span></div><div class="seed-dots"><span></span><span></span></div></div>
+            <div class="effect"><div><b>发芽</b> 有杂草时粮仓 +2。</div><div><b>收成</b> 清除杂草并入粮。</div><div><b>田患</b> 杂草占容量。</div></div><span class="plot-index">6</span>
+          </button>
+        </div>
+        <div class="js-fallback-note">如果这里只能看到卡片但点了没反应，说明当前手机文件预览器禁用了脚本；请点右上角分享，选择“在 Safari/浏览器中打开”或下载后打开。</div>
+        <div class="mobile-action-bar" aria-label="手机操作栏"><button class="primary-btn" id="mobileSowBtn" disabled>确认播种</button><button class="ghost-btn" id="mobileCancelBtn">取消</button></div>
+      </section>
+
+      <aside class="side">
+        <section class="panel tutorial-panel" id="tutorialPanel">
+          <h2>教学田</h2>
+          <div class="tutorial-step" id="tutorialStepBox"></div>
+        </section>
+
+        <section class="panel action-panel">
+          <h2>播种预览 <span class="hint">点一垄，再确认</span></h2>
+          <div class="preview-box" id="previewBox"><div class="hint">选择一张有种子的田垄牌。系统会预览路线、落点、空垄收成、烂根和季节推进。</div></div>
+          <div class="toggle-row"><span class="hint">方向</span><div class="seg" role="group" aria-label="播种方向"><button id="clockwiseBtn" class="on">顺时针</button><button id="counterBtn">逆时针</button></div></div>
+          <div class="controls"><button class="primary-btn" id="sowBtn" disabled>确认播种</button><button class="ghost-btn" id="cancelBtn">取消</button><button class="ghost-btn" id="autoBtn">提示一步</button></div>
+        </section>
+
+        <section class="panel"><h2>农具 <span class="hint">改变规则的奖励</span></h2><div class="tool-list" id="toolList"></div></section>
+        <section class="panel"><h2>田志 <span class="hint">最近事件</span></h2><div class="log" id="log" aria-live="polite"></div></section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal" id="rewardModal" role="dialog" aria-modal="true" aria-labelledby="rewardTitle"><div class="modal-card"><h2 id="rewardTitle">本季丰收</h2><p id="rewardText">选择一个奖励，进入下一季。</p><div class="reward-grid" id="rewardGrid"></div></div></div>
+  <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modal-card"><h2 id="helpTitle">规则速览</h2><p><b>目标：</b>把粮仓填到目标值，同时保护篱笆。季节轮满时，田患会结算。</p><div class="rule-grid"><div class="rule"><b>1. 选起点</b><span>点一张有种子的田垄，抓起上面所有种子。空垄不能作为起点。</span></div><div class="rule"><b>2. 播种</b><span>种子沿当前方向一颗颗落下。每落一颗，都触发目标牌的“发芽”。</span></div><div class="rule"><b>3. 收成</b><span>最后一颗种子落到的牌触发“收成”，然后这张牌被新作物替换。</span></div><div class="rule"><b>4. 空垄奖励</b><span>最后一颗若落到原本没有种子的田垄，收成额外 +1 次。</span></div><div class="rule"><b>5. 季节压力</b><span>播种越多，季节走得越快。季节满时，虫害、旱斑、鸟群等会发动。</span></div><div class="rule"><b>6. 容量与腐烂</b><span>超过容量的种子会烂根，通常伤篱笆；部分作物和农具能把腐烂变收益。</span></div></div><button class="primary-btn" id="closeHelpBtn" style="width:100%;margin-top:8px">明白了</button></div></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    const STEP = 360;
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+    const mod = (n,m)=>((n % m) + m) % m;
+    const rand = arr => arr[Math.floor(Math.random()*arr.length)];
+    const shuffle = arr => { const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+    const uniq = arr => [...new Set(arr)];
+
+    const CROPS = {
+      wheat:{ name:'壳麦', tags:['粮'], init:2, cap:5, sproutText:'粮仓 +1。', harvestText:'粮仓 + 本垄种子×2。',
+        async sprout(i){ await gainGrain(1,'壳麦发芽',i); },
+        async harvest(i,m){ const s=state.plots[i].seeds; await gainGrain(s*2*m,`壳麦收成 ×${m}`,i); }
+      },
+      lotus:{ name:'蓄水莲', tags:['水'], init:1, cap:4, sproutText:'本垄蓄水 +1。', harvestText:'用蓄水清除本垄与相邻旱斑。',
+        async sprout(i){ state.plots[i].water += 1; addLog(`💧 ${plotName(i)} 蓄水 +1。`); render(); await floatPlot(i,'💧 蓄水+1','blue'); },
+        async harvest(i,m){ let budget=Math.max(1,state.plots[i].water + m); let cleared=0; for(const idx of [mod(i-1,6),i,mod(i+1,6)]){ if(budget<=0) break; const c=await reduceHazard(idx,'drought',budget,'蓄水莲收成'); cleared+=c; budget-=c; } state.plots[i].water=Math.max(0,state.plots[i].water-cleared); if(cleared) await gainGrain(cleared*2,'旱斑化成湿土',i); else await gainFence(m,'蓄水莲修水沟',i); }
+      },
+      chrysanthemum:{ name:'驱虫菊', tags:['花'], init:1, cap:3, sproutText:'清除本垄 1 点虫害。', harvestText:'清除相邻虫害，清得越多粮越多。',
+        async sprout(i){ await reduceHazard(i,'pest',1,'驱虫菊发芽'); },
+        async harvest(i,m){ let cleared=0; for(const idx of [mod(i-1,6),i,mod(i+1,6)]) cleared += await reduceHazard(idx,'pest',m,'驱虫菊收成'); if(cleared) await gainGrain(cleared*2,'虫害退散',i); else await gainGrain(m,'驱虫菊晒干入仓',i); }
+      },
+      honey:{ name:'蜜花', tags:['花','蜜'], init:1, cap:3, sproutText:'蜂群 +1。', harvestText:'按蜂群数量入粮；邻近果类加成。',
+        async sprout(i){ state.bees += 1; addLog('🐝 蜂群 +1。'); render(); bump('ecoStat'); await floatPlot(i,'🐝 蜂+1','good'); },
+        async harvest(i,m){ const fruitAdj=[mod(i-1,6),mod(i+1,6)].filter(idx=>CROPS[state.plots[idx].crop].tags.includes('果')).length; await gainGrain((state.bees + fruitAdj*2)*m,`蜜花收成：蜂${state.bees} 邻果${fruitAdj}`,i); state.flowerHarvests += m; if(hasTool('hive') && state.flowerHarvests>=3){ state.flowerHarvests-=3; for(let x=0;x<6;x++) state.plots[x].seeds=Math.min(effectiveCap(x),state.plots[x].seeds+1); addLog('🍯 蜂箱：所有田垄各添 1 颗种子。','good'); render(); await boardFloat('🍯 蜂箱群起','good',520); } }
+      },
+      scarecrow:{ name:'稻草人', tags:['器具'], init:0, cap:2, sproutText:'驱赶本垄 1 点鸟群。', harvestText:'本季鸟害削弱，并获得少量粮。',
+        async sprout(i){ await reduceHazard(i,'bird',1,'稻草人立起'); },
+        async harvest(i,m){ state.birdGuard += 2*m; addLog(`🪶 鸟害抵消 +${2*m}。`,'good'); render(); bump('ecoStat'); await gainGrain(2*m,'稻草人守住谷粒',i); }
+      },
+      mushroom:{ name:'腐土菇', tags:['菇','腐'], init:1, cap:3, sproutText:'若本季有腐烂，粮仓 +1。', harvestText:'把腐烂计数转为粮仓，然后清零。',
+        async sprout(i){ if(state.rot>0) await gainGrain(1,'腐土菇吃腐生粮',i); else await floatPlot(i,'等待腐土','warn',260); },
+        async harvest(i,m){ const gain=Math.max(1,state.rot*2)*m; await gainGrain(gain,'腐土菇把腐烂变肥料',i); state.rot=Math.max(0,state.rot-2*m); render(); bump('ecoStat'); }
+      },
+      pea:{ name:'野豌豆', tags:['豆'], init:2, cap:3, sproutText:'若本垄有杂草，粮仓 +2。', harvestText:'清除本垄杂草，并按杂草入粮。',
+        async sprout(i){ if(state.plots[i].hazard?.type==='weed') await gainGrain(2,'野豌豆借杂草攀爬',i); else await floatPlot(i,'攀爬中','good',220); },
+        async harvest(i,m){ const cleared=await reduceHazard(i,'weed',99,'野豌豆收成'); await gainGrain((cleared*3+1)*m,'野豌豆把杂草变藤架',i); }
+      },
+      melon:{ name:'甜瓜', tags:['果'], init:1, cap:5, sproutText:'若有蜂群，粮仓 +1。', harvestText:'按种子数与蜂群倍率入粮。',
+        async sprout(i){ if(state.bees>0) await gainGrain(1,'甜瓜授粉',i); else await floatPlot(i,'等蜂来','warn',240); },
+        async harvest(i,m){ const s=state.plots[i].seeds; await gainGrain(s*(1+Math.min(3,state.bees))*m,'甜瓜鼓胀成熟',i); }
+      },
+      buckwheat:{ name:'苦荞', tags:['粮','韧'], init:3, cap:4, sproutText:'篱笆 +1。', harvestText:'粮仓 +种子，篱笆 +1。',
+        async sprout(i){ await gainFence(1,'苦荞固土',i); },
+        async harvest(i,m){ const s=state.plots[i].seeds; await gainGrain(s*m,'苦荞收成',i); await gainFence(m,'苦荞茎秆修篱',i); }
+      },
+      cleanbean:{ name:'净土豆', tags:['豆','净'], init:1, cap:4, sproutText:'若本垄有田患，清除 1 点；否则粮仓 +1。', harvestText:'按种子清除田患或入粮。',
+        async sprout(i){ if(state.plots[i].hazard) await reduceHazard(i,null,1,'净土豆发芽'); else await gainGrain(1,'净土豆在净田增产',i); },
+        async harvest(i,m){ const s=state.plots[i].seeds; const cleared=await reduceHazard(i,null,s*m,'净土豆收成'); await gainGrain(Math.max(1,s*m+cleared),'净土豆入仓',i); }
+      },
+      night:{ name:'夜露草', tags:['月','水'], init:1, cap:3, sproutText:'季节轮 -1。', harvestText:'修篱；若临近换季，额外入粮。',
+        async sprout(i){ state.season=Math.max(0,state.season-1); addLog('🌙 夜露草：季节轮 -1。'); render(); bump('seasonStat'); await floatPlot(i,'季节-1','blue'); },
+        async harvest(i,m){ const late=state.season>=8; await gainFence(2*m,'夜露草凝露护田',i); await gainGrain((late?4:1)*m, late?'赶在换季前收露':'夜露草少量入仓',i); }
+      }
+    };
+
+    const HAZARDS = {
+      pest:{ name:'虫害', icon:'🐛', desc:'换季吃种子；无种伤篱笆', async act(i,h){ const eat=Math.min(state.plots[i].seeds,h.pressure); state.plots[i].seeds-=eat; if(eat){ addLog(`🐛 ${plotName(i)} 虫害吃掉 ${eat} 颗种子。`,'warn'); render(); await floatPlot(i,`-${eat}种`,'warn'); } const dmg=h.pressure-eat; if(dmg) await damageFence(dmg,`${plotName(i)} 虫害啃坏篱笆`,i); } },
+      drought:{ name:'旱斑', icon:'☀️', desc:'换季消耗蓄水；缺水伤篱笆', async act(i,h){ const p=state.plots[i]; const use=Math.min(p.water,h.pressure); p.water-=use; if(use){ addLog(`☀️ ${plotName(i)} 旱斑被蓄水抵消 ${use}。`,'good'); render(); await floatPlot(i,`蓄水-${use}`,'blue'); } const dmg=h.pressure-use; if(dmg) await damageFence(dmg,`${plotName(i)} 旱情裂开田埂`,i); } },
+      bird:{ name:'鸟群', icon:'🐦', desc:'换季偷粮，可被稻草人抵消', async act(i,h){ let steal=h.pressure*2; const block=Math.min(steal,state.birdGuard); state.birdGuard-=block; steal-=block; if(block){ addLog(`🪶 稻草人抵消鸟害 ${block}。`,'good'); render(); await floatPlot(i,`挡${block}`,'good'); } if(steal>0){ state.grain=Math.max(0,state.grain-steal); addLog(`🐦 鸟群偷走 ${steal} 粮。`,'bad'); render(); bump('grainStat'); await floatPlot(i,`-${steal}粮`,'bad'); } } },
+      weed:{ name:'杂草', icon:'🌿', desc:'占容量；换季向下一垄扩散', async act(i,h){ const next=mod(i+1,6); await addHazard(next,'weed',1,true); addLog(`🌿 ${plotName(i)} 杂草向 ${plotName(next)} 蔓延。`,'warn'); } },
+      frost:{ name:'霜冻', icon:'❄️', desc:'换季冻掉种子', async act(i,h){ const lose=Math.min(state.plots[i].seeds,h.pressure); state.plots[i].seeds-=lose; if(lose){ addLog(`❄️ ${plotName(i)} 霜冻冻掉 ${lose} 颗种子。`,'warn'); render(); await floatPlot(i,`-${lose}种`,'warn'); } else await damageFence(1,`${plotName(i)} 霜冻压坏空田`,i); } },
+      mold:{ name:'霉病', icon:'🦠', desc:'换季增加腐烂；腐烂过多伤篱笆', async act(i,h){ state.rot+=h.pressure; addLog(`🦠 ${plotName(i)} 霉病让腐烂 +${h.pressure}。`,'warn'); render(); bump('ecoStat'); await floatPlot(i,`腐+${h.pressure}`,'warn'); if(state.rot>=6){ await damageFence(1,'腐烂堆积过多',i); state.rot=4; render(); } } }
+    };
+
+    const TOOLS = {
+      emptySickle:{name:'空仓镰', desc:'空垄收成额外 +1 次。'},
+      sunshade:{name:'日影伞', desc:'每次播种前 2 颗不推进季节轮。'},
+      rake:{name:'铁齿耙', desc:'每季前 3 次烂根不伤篱笆，改为粮仓 +2。'},
+      well:{name:'深井', desc:'每次清空起点垄，篱笆 +1。'},
+      hive:{name:'蜂箱', desc:'每 3 次花类收成，所有垄各添 1 种。'},
+      wheel:{name:'旧水车', desc:'正好播 4 颗时，收成额外 +1 次。'},
+      rotation:{name:'轮作册', desc:'连续收成不同主标签时，粮仓 +2。'},
+      cellar:{name:'地窖', desc:'每季开始保留 4 点粮仓底数。'}
+    };
+
+    const state = {
+      tutorial:true, tutorialStep:0, stage:0, grain:0, target:14, fence:10, maxFence:10, season:0, seasonMax:10,
+      rot:0, bees:0, birdGuard:0, flowerHarvests:0, rakeCharges:0,
+      deck:[], discard:[], plots:[], tools:[], selected:null, direction:1, logs:[], rewards:[], harvestedTags:[], runOver:false, resolving:false
+    };
+    const els = {};
+
+    function init(){
+      try{
+        document.body.classList.add('js-ready');
+        const ids=['board','stageText','targetText','grainBar','fenceText','fenceBar','seasonText','seasonBar','ecoText','deckText','previewBox','sowBtn','mobileSowBtn','cancelBtn','mobileCancelBtn','autoBtn','clockwiseBtn','counterBtn','toolList','log','rewardModal','rewardGrid','rewardText','helpModal','helpBtn','quickRuleBtn','closeHelpBtn','restartBtn','tutorialBtn','currentGoal','goalSub','focusList','goalIcon','boardPhase','tutorialPanel','tutorialStepBox'];
+        for(const id of ids) els[id]=document.getElementById(id);
+        const missing=ids.filter(id=>!els[id]);
+        if(missing.length) throw new Error('缺少页面元素：'+missing.join(','));
+        els.sowBtn.addEventListener('click', sowSelected);
+        els.mobileSowBtn.addEventListener('click', sowSelected);
+        els.cancelBtn.addEventListener('click', clearSelection);
+        els.mobileCancelBtn.addEventListener('click', clearSelection);
+        els.autoBtn.addEventListener('click', suggestMove);
+        els.clockwiseBtn.addEventListener('click', ()=>setDirection(1));
+        els.counterBtn.addEventListener('click', ()=>setDirection(-1));
+        els.helpBtn.addEventListener('click', showHelp);
+        els.quickRuleBtn.addEventListener('click', showHelp);
+        els.closeHelpBtn.addEventListener('click', ()=>els.helpModal.classList.remove('show'));
+        els.tutorialBtn.addEventListener('click', ()=>{ if(!state.resolving) startTutorial(); });
+        els.restartBtn.addEventListener('click', ()=>{ if(!state.resolving && confirm('重新开始一局？')) startTutorial(); });
+        els.helpModal.addEventListener('click', e=>{ if(e.target===els.helpModal) els.helpModal.classList.remove('show'); });
+        startTutorial();
+      }catch(err){
+        console.error(err);
+        document.body.classList.remove('js-ready');
+        const note=document.querySelector('.js-fallback-note');
+        if(note) note.textContent='脚本初始化失败：'+err.message+'。请尝试用 Safari/Chrome 浏览器打开此 HTML。';
+      }
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init, {once:true}); else init();
+
+    function showHelp(){ els.helpModal.classList.add('show'); }
+    function startTutorial(){
+      Object.assign(state,{ tutorial:true, tutorialStep:0, stage:0, grain:0, target:14, fence:10, maxFence:10, season:0, seasonMax:10, rot:0, bees:0, birdGuard:0, flowerHarvests:0, rakeCharges:0, deck:shuffle(['wheat','lotus','chrysanthemum','honey','scarecrow','mushroom','pea','melon','buckwheat','cleanbean','night']), discard:[], plots:[], tools:[], selected:null, direction:1, logs:[], rewards:[], harvestedTags:[], runOver:false, resolving:false });
+      state.plots=[
+        {crop:'wheat',seeds:2,water:0,hazard:null},
+        {crop:'lotus',seeds:1,water:0,hazard:{type:'drought',pressure:1,frozen:false}},
+        {crop:'chrysanthemum',seeds:0,water:0,hazard:{type:'pest',pressure:1,frozen:false}},
+        {crop:'scarecrow',seeds:1,water:0,hazard:{type:'bird',pressure:1,frozen:false}},
+        {crop:'honey',seeds:1,water:0,hazard:null},
+        {crop:'pea',seeds:2,water:0,hazard:{type:'weed',pressure:1,frozen:false}}
+      ];
+      addLog('🌱 教学田开始：先学会播种、发芽、收成，再进入正式一季。','good');
+      setDirection(1); render();
+    }
+    function startRegularRun(){
+      Object.assign(state,{ tutorial:false, tutorialStep:0, stage:1, grain:0, target:36, fence:12, maxFence:12, season:0, seasonMax:12, rot:0, bees:0, birdGuard:0, flowerHarvests:0, rakeCharges:0, deck:shuffle(['wheat','wheat','lotus','chrysanthemum','honey','scarecrow','mushroom','pea','melon','buckwheat','cleanbean','night']), discard:[], plots:[], tools:[], selected:null, direction:1, logs:[], rewards:[], harvestedTags:[], runOver:false, resolving:false });
+      startStage(true);
+    }
+    function startStage(first=false){
+      state.grain=hasTool('cellar')?4:0; state.target=28+state.stage*8; state.season=0; state.rot=0; state.bees=0; state.birdGuard=0; state.flowerHarvests=0; state.rakeCharges=hasTool('rake')?3:0; state.selected=null; state.harvestedTags=[];
+      if(state.plots.length){ for(const p of state.plots) state.discard.push(p.crop); }
+      state.plots=[]; for(let i=0;i<6;i++){ const id=drawCrop(); state.plots.push({crop:id,seeds:CROPS[id].init,water:0,hazard:null}); }
+      const hazardCount=clamp(1+Math.floor(state.stage/2),2,5); for(let n=0;n<hazardCount;n++) addRandomHazardSync(1+(state.stage>4&&Math.random()<.25?1:0));
+      addLog(first?'🌾 正式一季开始：目标是填粮仓并守住篱笆。':`🌾 第 ${state.stage} 季开始：目标粮仓 ${state.target}。`,'good'); render();
+    }
+    function drawCrop(){ if(state.deck.length===0){ state.deck=shuffle(state.discard); state.discard=[]; if(state.deck.length) addLog('🔄 牌库洗回。'); } return state.deck.pop() || 'wheat'; }
+    function hasTool(id){ return state.tools.includes(id); }
+    function plotName(i){ return `${i+1}号田`; }
+    function crop(i){ return CROPS[state.plots[i].crop]; }
+    function effectiveCap(i){ let cap=crop(i).cap; const h=state.plots[i].hazard; if(h?.type==='weed') cap-=h.pressure; return Math.max(1,cap); }
+    function addLog(msg,type=''){ state.logs.unshift({msg,type}); state.logs=state.logs.slice(0,46); }
+    function bump(id){ const el=document.getElementById(id); if(!el) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+
+    async function floatPlot(i,text,kind='good',ms=STEP){
+      renderBoard(); renderStats(); renderPreview(); renderTools(); renderLog(); renderObjective();
+      const el=els.board.querySelector(`[data-pos="${i}"]`); if(!el){ await sleep(ms); return; }
+      const cls=kind==='bad'?'fx-bad':kind==='warn'?'fx-disaster':kind==='blue'?'fx-seed':kind==='harvest'?'fx-harvest':kind==='new'?'fx-new':'fx-sprout';
+      el.classList.add(cls);
+      const span=document.createElement('span'); span.className=`float-text ${kind==='bad'?'bad':kind==='warn'?'warn':kind==='blue'?'blue':'good'}`; span.textContent=text; el.appendChild(span);
+      await sleep(ms);
+      el.classList.remove(cls);
+    }
+    async function boardFloat(text,kind='good',ms=STEP){
+      const i=state.selected ?? 0; await floatPlot(i,text,kind,ms);
+    }
+    async function gainGrain(n,why='',i=null){ n=Math.max(0,Math.floor(n)); if(!n) return; state.grain+=n; addLog(`🌾 粮仓 +${n}${why?`（${why}）`:''}`,'good'); render(); bump('grainStat'); if(i!==null) await floatPlot(i,`+${n}粮`,'good'); else await sleep(STEP/2); }
+    async function gainFence(n,why='',i=null){ n=Math.max(0,Math.floor(n)); if(!n) return; const before=state.fence; state.fence=Math.min(state.maxFence,state.fence+n); const got=state.fence-before; if(!got) return; addLog(`🪵 篱笆 +${got}${why?`（${why}）`:''}`,'good'); render(); bump('fenceStat'); if(i!==null) await floatPlot(i,`+${got}篱`,'good'); else await sleep(STEP/2); }
+    async function damageFence(n,why='',i=null){ n=Math.max(0,Math.floor(n)); if(!n) return; state.fence-=n; addLog(`💥 篱笆 -${n}${why?`（${why}）`:''}`,'bad'); render(); bump('fenceStat'); if(i!==null) await floatPlot(i,`-${n}篱`,'bad'); else await sleep(STEP); if(state.fence<=0) gameOver('篱笆被田患压垮了。'); }
+    async function reduceHazard(i,type,amount,why=''){ const h=state.plots[i].hazard; if(!h) return 0; if(type && h.type!==type) return 0; const removed=Math.min(amount,h.pressure); if(!removed) return 0; h.pressure-=removed; addLog(`${HAZARDS[h.type].icon} ${plotName(i)} ${HAZARDS[h.type].name} -${removed}${why?`（${why}）`:''}`,'good'); render(); await floatPlot(i,`${HAZARDS[h.type].icon}-${removed}`,'good'); if(h.pressure<=0){ const name=HAZARDS[h.type].name; state.plots[i].hazard=null; addLog(`✅ ${plotName(i)} 的${name}被清除。`,'good'); render(); await floatPlot(i,'净田','good'); } return removed; }
+    async function addHazard(i,type,pressure=1,announce=true){ const p=state.plots[i]; if(!p.hazard){ p.hazard={type,pressure,frozen:false}; } else if(p.hazard.type===type){ p.hazard.pressure+=pressure; } else { p.hazard.pressure+=pressure; } if(announce) addLog(`${HAZARDS[type].icon} ${plotName(i)} 出现${HAZARDS[type].name} ${pressure}。`,'warn'); render(); await floatPlot(i,`${HAZARDS[type].icon}+${pressure}`,'warn'); }
+    function addHazardSync(i,type,pressure=1){ const p=state.plots[i]; if(!p.hazard) p.hazard={type,pressure,frozen:false}; else if(p.hazard.type===type) p.hazard.pressure+=pressure; else p.hazard.pressure+=pressure; }
+    function addRandomHazardSync(pressure=1){ const empty=state.plots.map((p,i)=>p.hazard?null:i).filter(v=>v!==null); const i=empty.length?rand(empty):Math.floor(Math.random()*6); addHazardSync(i,rand(['pest','drought','bird','weed','frost','mold']),pressure); }
+    async function addRandomHazard(pressure=1){ const empty=state.plots.map((p,i)=>p.hazard?null:i).filter(v=>v!==null); const i=empty.length?rand(empty):Math.floor(Math.random()*6); await addHazard(i,rand(['pest','drought','bird','weed','frost','mold']),pressure,true); }
+
+    function setDirection(dir){ state.direction=dir; els.clockwiseBtn.classList.toggle('on',dir===1); els.counterBtn.classList.toggle('on',dir===-1); render(); }
+    function clearSelection(){ if(state.resolving) return; state.selected=null; render(); }
+    function selectPlot(i){ if(state.runOver||state.resolving) return; if(state.plots[i].seeds<=0){ addLog(`🕳️ ${plotName(i)} 是空垄，不能作为起点；但适合做落点。`,'warn'); render(); floatPlot(i,'空垄落点','warn',420); return; } state.selected=i; maybeAdvanceTutorial('select'); render(); }
+    function getPreview(start=state.selected){ if(start===null || start===undefined || state.plots[start].seeds<=0) return null; const count=state.plots[start].seeds; const simSeeds=state.plots.map(p=>p.seeds); simSeeds[start]=0; const route=[]; let last=null,lastWasEmpty=false; const overflow=[]; let seasonGain=0; for(let k=1;k<=count;k++){ const i=mod(start+state.direction*k,6); const wasEmpty=simSeeds[i]===0; const cap=effectiveCap(i); if(simSeeds[i]+1>cap) overflow.push(i); else simSeeds[i]+=1; route.push(i); last=i; if(k===count) lastWasEmpty=wasEmpty; if(!(hasTool('sunshade') && k<=2)) seasonGain+=1; } let mult=1+(lastWasEmpty?1:0); if(hasTool('emptySickle')&&lastWasEmpty) mult+=1; if(hasTool('wheel')&&count===4) mult+=1; const seasonTotal=state.season+seasonGain; return {start,count,route,last,lastWasEmpty,overflow,seasonGain,seasonAfter:seasonTotal%state.seasonMax,disasters:Math.floor(seasonTotal/state.seasonMax),mult}; }
+
+    async function sowSelected(){
+      if(state.selected===null || state.runOver || state.resolving) return; const start=state.selected; if(state.plots[start].seeds<=0) return; const preview=getPreview(); if(!preview) return;
+      state.resolving=true; els.boardPhase.textContent='正在逐步结算播种';
+      const count=state.plots[start].seeds; addLog(`🫴 从 ${plotName(start)}「${crop(start).name}」抓起 ${count} 颗种子。`); render(); await floatPlot(start,`抓起${count}颗`,'blue',520);
+      state.plots[start].seeds=0; render(); await sleep(180);
+      if(hasTool('well')) await gainFence(1,'深井：清空起点垄',start);
+      let last=start,lastWasEmpty=false,harvestMult=1,disastersDue=0;
+      for(let k=1;k<=count;k++){
+        const i=mod(start+state.direction*k,6); last=i; const wasEmpty=state.plots[i].seeds===0; if(k===count) lastWasEmpty=wasEmpty;
+        addLog(`🌱 第 ${k}/${count} 颗种子落到 ${plotName(i)}。`); render(); await floatPlot(i,'🌱 落种','blue',350);
+        await placeSeed(i,k);
+        if(state.runOver) break;
+        if(!(hasTool('sunshade') && k<=2)){ state.season+=1; addLog(`🌓 季节轮 +1。`); render(); bump('seasonStat'); await sleep(220); if(state.season>=state.seasonMax){ disastersDue+=Math.floor(state.season/state.seasonMax); state.season=state.season%state.seasonMax; addLog('🌘 季节轮满：播种结束后结算田患。','warn'); render(); await boardFloat('即将换季','warn',420); } }
+        else { addLog('⛱️ 日影伞：这颗不推进季节轮。','good'); render(); await sleep(180); }
+      }
+      if(state.runOver){ state.resolving=false; render(); return; }
+      if(lastWasEmpty){ harvestMult+=1; addLog('✨ 最后一颗落入空垄：收成额外 +1 次。','good'); render(); await floatPlot(last,'空垄收成','good',560); }
+      if(hasTool('emptySickle') && lastWasEmpty){ harvestMult+=1; addLog('🌙 空仓镰：空垄收成再 +1 次。','good'); render(); await floatPlot(last,'镰+1','good',420); }
+      if(hasTool('wheel') && count===4){ harvestMult+=1; addLog('💧 旧水车：正好播 4 颗，收成 +1 次。','good'); render(); await floatPlot(last,'水车+1','blue',420); }
+      await harvest(last,harvestMult);
+      state.selected=null;
+      if(!state.runOver && state.grain>=state.target){ await stageWin(); state.resolving=false; render(); return; }
+      for(let d=0; d<disastersDue && !state.runOver; d++) await processDisaster();
+      if(!state.runOver && state.grain>=state.target) await stageWin();
+      maybeAdvanceTutorial('sow');
+      state.resolving=false; render();
+    }
+    async function placeSeed(i,k){ const cap=effectiveCap(i); if(state.plots[i].seeds+1>cap){ state.rot+=1; addLog(`🟤 ${plotName(i)} 容量 ${cap}，种子烂根。`,'warn'); render(); bump('ecoStat'); await floatPlot(i,'烂根','bad',520); if(hasTool('rake') && state.rakeCharges>0){ state.rakeCharges-=1; await gainGrain(2,'铁齿耙把烂根翻成腐肥',i); } else await damageFence(1,`${plotName(i)} 超过容量烂根`,i); return; } state.plots[i].seeds+=1; render(); await floatPlot(i,`种子 ${state.plots[i].seeds}/${effectiveCap(i)}`,'blue',320); await crop(i).sprout(i); }
+    async function harvest(i,mult){ const c=crop(i); addLog(`🧺 ${plotName(i)}「${c.name}」收成 ×${mult}。`,'good'); render(); await floatPlot(i,`收成×${mult}`,'harvest',640); await c.harvest(i,mult); if(hasTool('rotation')){ const tag=c.tags[0]; const last=state.harvestedTags[state.harvestedTags.length-1]; if(last && last!==tag) await gainGrain(2,'轮作册：连续不同作物',i); state.harvestedTags.push(tag); state.harvestedTags=state.harvestedTags.slice(-3); }
+      state.discard.push(state.plots[i].crop); const keepWater=Math.max(0,state.plots[i].water-1); const keepHazard=state.plots[i].hazard; const newId=drawCrop(); state.plots[i]={crop:newId,seeds:CROPS[newId].init,water:keepWater,hazard:keepHazard}; addLog(`🌱 ${plotName(i)} 翻出新作物「${CROPS[newId].name}」。`); render(); await floatPlot(i,`新：${CROPS[newId].name}`,'new',560); }
+    async function processDisaster(){ if(state.runOver) return; addLog('🌘 换季：田患开始逐个结算。','warn'); render(); await boardFloat('换季结算','warn',520); for(let i=0;i<6;i++){ const h=state.plots[i].hazard; if(!h) continue; addLog(`${HAZARDS[h.type].icon} ${plotName(i)} 的${HAZARDS[h.type].name}发动。`,'warn'); render(); await floatPlot(i,`${HAZARDS[h.type].icon}发动`,'warn',520); await HAZARDS[h.type].act(i,h); if(state.runOver) break; } if(state.runOver) return; await addRandomHazard(1+(Math.random()<0.18?1:0)); addLog('🌫️ 新的田患在田边滋生。','warn'); render(); }
+
+    async function stageWin(){ if(state.runOver) return; addLog(state.tutorial?'🎓 教学田完成！你已经完成一次播种抗灾目标。':`🎉 第 ${state.stage} 季丰收！粮仓 ${state.grain}/${state.target}。`,'good'); render(); await boardFloat(state.tutorial?'教学完成':'本季丰收','good',650); state.fence=Math.min(state.maxFence,state.fence+3); if(state.tutorial) showTutorialDone(); else showRewards(); }
+    function showTutorialDone(){ document.getElementById('rewardTitle').textContent='教学完成'; els.rewardText.textContent='你已经体验了：选起点、看路线、发芽、收成、田患和目标。现在进入正式一季。'; els.rewardGrid.innerHTML=''; const b=document.createElement('button'); b.className='reward'; b.innerHTML='<div><strong>进入正式一季</strong><span>正式局会随机田环、随机田患，并在丰收后提供作物、农具和整田奖励。</span></div><em>开始肉鸽局</em>'; b.addEventListener('click',()=>{ els.rewardModal.classList.remove('show'); startRegularRun(); }); els.rewardGrid.appendChild(b); els.rewardModal.classList.add('show'); }
+    function gameOver(reason){ if(state.runOver) return; state.runOver=true; document.getElementById('rewardTitle').textContent='荒年结束'; els.rewardText.textContent=`${reason} ${state.tutorial?'教学田可以随时重试。':`撑到了第 ${state.stage} 季。`}`; els.rewardGrid.innerHTML=''; const b=document.createElement('button'); b.className='reward'; b.innerHTML='<div><strong>重新开田</strong><span>从教学田重新开始，或点击上方“重开”。</span></div><em>点击重开</em>'; b.addEventListener('click',()=>{ els.rewardModal.classList.remove('show'); startTutorial(); }); els.rewardGrid.appendChild(b); els.rewardModal.classList.add('show'); render(); }
+    function showRewards(){ const rewards=generateRewards(); state.rewards=rewards; document.getElementById('rewardTitle').textContent='本季丰收'; els.rewardText.textContent='选择一个奖励，进入下一季。'; els.rewardGrid.innerHTML=''; rewards.forEach((r,idx)=>{ const btn=document.createElement('button'); btn.className='reward'; btn.innerHTML=`<div><strong>${r.title}</strong><span>${r.desc}</span></div><em>${r.kind}</em>`; btn.addEventListener('click',()=>chooseReward(idx)); els.rewardGrid.appendChild(btn); }); els.rewardModal.classList.add('show'); }
+    function generateRewards(){ const cropChoices=shuffle(Object.keys(CROPS)).slice(0,2).map(id=>({ title:`新作物：${CROPS[id].name}`, desc:`加入牌组。初种 ${CROPS[id].init} / 容量 ${CROPS[id].cap}。发芽：${CROPS[id].sproutText} 收成：${CROPS[id].harvestText}`, kind:'作物牌', apply(){ state.discard.push(id); addLog(`➕ 新作物「${CROPS[id].name}」加入牌组。`,'good'); } })); const remainingTools=Object.keys(TOOLS).filter(id=>!hasTool(id)); const toolId=remainingTools.length?rand(remainingTools):null; const toolReward=toolId?{ title:`农具：${TOOLS[toolId].name}`, desc:TOOLS[toolId].desc, kind:'农具', apply(){ state.tools.push(toolId); addLog(`🧰 获得农具「${TOOLS[toolId].name}」。`,'good'); } }:{ title:'整田：加固篱笆', desc:'最大篱笆 +2，并修复 4 点篱笆。', kind:'整田', apply(){ state.maxFence+=2; gainFence(4,'整田加固'); } }; const repair={ title:'整田：修枝补篱', desc:'最大篱笆 +1，修复 5 点篱笆，并尝试移除一张壳麦。', kind:'整田', apply(){ state.maxFence+=1; state.fence=Math.min(state.maxFence,state.fence+5); const zones=[state.deck,state.discard]; for(const z of zones){ const idx=z.indexOf('wheat'); if(idx>=0){ z.splice(idx,1); addLog('✂️ 修枝：移除一张壳麦。','good'); break; } } } }; return shuffle([...cropChoices,toolReward,repair]).slice(0,3); }
+    function chooseReward(idx){ const r=state.rewards[idx]; if(!r) return; r.apply(); els.rewardModal.classList.remove('show'); state.stage+=1; startStage(); }
+
+    function maybeAdvanceTutorial(event){ if(!state.tutorial) return; if(event==='select' && state.tutorialStep<1){ state.tutorialStep=1; } if(event==='sow'){ state.tutorialStep=Math.min(3,state.tutorialStep+1); } }
+    function tutorialCopy(){ if(!state.tutorial) return null; if(state.grain>=state.target) return {pill:'完成',title:'教学目标已达成',body:'选择进入正式一季。'}; const steps=[
+      {pill:'第 1 步',title:'点一垄，看路线',body:'建议点 1号田「壳麦」。你会看到种子会落到哪些田垄，最后落点会收成。'},
+      {pill:'第 2 步',title:'确认播种，看逐步结算',body:'每颗种子会一个个落下；发芽、季节推进和收成都会有浮字反馈。'},
+      {pill:'第 3 步',title:'处理田患',body:'虫害、旱斑、鸟群不是敌人血条，而是田里的问题。用驱虫菊、蓄水莲、稻草人处理它们。'},
+      {pill:'第 4 步',title:'填满粮仓',body:'粮仓达到目标就过关。想要高收益，试着让最后一颗落入空垄触发额外收成。'}
+    ]; return steps[clamp(state.tutorialStep,0,steps.length-1)]; }
+    function suggestMove(){ if(state.runOver||state.resolving) return; let best=null; for(let i=0;i<6;i++){ if(state.plots[i].seeds<=0) continue; const old=state.selected; state.selected=i; const p=getPreview(i); state.selected=old; if(!p) continue; const score=p.mult*5+p.route.length-p.overflow.length*5-p.disasters*5+(p.lastWasEmpty?4:0); if(!best||score>best.score) best={i,score,p}; } if(best){ state.selected=best.i; addLog(`🧭 提示：从 ${plotName(best.i)} 开始，落到 ${plotName(best.p.last)}。`); render(); } }
+
+    function render(){ document.body.classList.toggle('has-selection', state.selected!==null && !state.runOver && !state.resolving); renderObjective(); renderStats(); renderBoard(); renderPreview(); renderTools(); renderLog(); }
+    function renderObjective(){ const mode=state.tutorial?'教学田':`第 ${state.stage} 季`; els.goalIcon.textContent=state.tutorial?'🎓':'🌾'; els.currentGoal.textContent=state.tutorial?'教学目标：把粮仓填到 14':'当前目标：把粮仓填满'; els.goalSub.textContent=`${mode}｜粮仓 ${state.grain}/${state.target}，篱笆归零会失败。`; const focus=[]; if(state.selected===null) focus.push('先点一张有种子的田垄，观察路线预览。'); else { const p=getPreview(); if(p){ focus.push(`当前会播 ${p.count} 颗，落到 ${p.last+1}号田，收成 ×${p.mult}。`); if(p.disasters) focus.push('这次播种会触发换季，田患会逐个结算。'); else focus.push('这次不会立刻换季，风险较低。'); } } const bad=state.plots.findIndex(p=>p.hazard); if(bad>=0) focus.push(`${plotName(bad)} 有${HAZARDS[state.plots[bad].hazard.type].name}，相关作物可以清除。`); if(state.season>=state.seasonMax-3) focus.push('季节快满了，短播或夜露草能降低风险。'); els.focusList.innerHTML=focus.slice(0,3).map(x=>`<li>${x}</li>`).join(''); const t=tutorialCopy(); els.tutorialPanel.style.display=state.tutorial?'block':'none'; if(t) els.tutorialStepBox.innerHTML=`<span class="step-pill">${t.pill}</span><strong>${t.title}</strong><p>${t.body}</p>`; }
+    function renderStats(){ els.stageText.textContent=state.tutorial?'教学':String(state.stage); els.targetText.textContent=`粮仓 ${state.grain}/${state.target}`; els.grainBar.style.width=`${clamp(state.grain/state.target*100,0,100)}%`; els.fenceText.textContent=`${Math.max(0,state.fence)}/${state.maxFence}`; els.fenceBar.style.width=`${clamp(state.fence/state.maxFence*100,0,100)}%`; els.seasonText.textContent=`${state.season}/${state.seasonMax}`; els.seasonBar.style.width=`${clamp(state.season/state.seasonMax*100,0,100)}%`; els.ecoText.textContent=`蜂${state.bees} 腐${state.rot}${state.birdGuard?` 鸟防${state.birdGuard}`:''}`; els.deckText.textContent=`${state.deck.length} / ${state.discard.length}`; }
+    function renderBoard(){ const preview=getPreview(); const pathCounts=new Map(); if(preview) preview.route.forEach(i=>pathCounts.set(i,(pathCounts.get(i)||0)+1)); els.board.innerHTML=''; els.boardPhase.textContent=state.resolving?'正在逐步结算播种':state.selected===null?'选择一垄开始播种':'检查路线后确认播种'; for(let i=0;i<6;i++){ const p=state.plots[i], c=CROPS[p.crop], h=p.hazard; const btn=document.createElement('button'); btn.type='button'; btn.className='plot'; btn.dataset.pos=String(i); if(state.selected===i) btn.classList.add('selected'); if(pathCounts.has(i)) btn.classList.add('path'); if(preview?.last===i) btn.classList.add('last'); if(preview?.overflow.includes(i)) btn.classList.add('overflow'); btn.disabled=state.resolving || state.runOver; const dots=Array.from({length:Math.min(p.seeds,10)},()=>'<span></span>').join('')+(p.seeds>10?`<b>+${p.seeds-10}</b>`:''); btn.innerHTML=`<div><div class="plot-top"><div><div class="crop-name">${c.name}</div><div class="tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>${h?`<span class="hazard ${h.frozen?'frozen':''}">${HAZARDS[h.type].icon}${HAZARDS[h.type].name}${h.pressure}</span>`:`<span class="hazard clean">净田</span>`}</div><div class="seed-row"><span class="seed-badge">🌱 ${p.seeds}/${effectiveCap(i)}</span>${p.water?`<span class="mini-badge water">💧${p.water}</span>`:''}${pathCounts.has(i)?`<span class="mini-badge bonus">途经×${pathCounts.get(i)}</span>`:''}${preview?.last===i?`<span class="mini-badge bad">落点</span>`:''}</div><div class="seed-dots">${dots}</div></div><div class="effect"><div><b>发芽</b> ${c.sproutText}</div><div><b>收成</b> ${c.harvestText}</div>${h?`<div><b>田患</b> ${HAZARDS[h.type].desc}</div>`:''}</div><span class="plot-index">${i+1}</span>`; btn.addEventListener('click',()=>selectPlot(i)); els.board.appendChild(btn); } }
+    function renderPreview(){ const p=getPreview(); const disabled=!p||state.runOver||state.resolving; els.sowBtn.disabled=disabled; els.mobileSowBtn.disabled=disabled; if(!p){ els.previewBox.innerHTML='<div class="hint">选择一张有种子的田垄牌。空垄不能作为起点，但很适合作为最后落点。</div>'; els.mobileSowBtn.textContent='确认播种'; return; } const routeText=p.route.map(i=>`${i+1}`).join(' → '); const c=crop(p.last); const warns=[]; if(p.lastWasEmpty) warns.push('空垄收成'); if(p.overflow.length) warns.push(`烂根 ${uniq(p.overflow).map(i=>i+1).join(',')}`); if(p.disasters) warns.push(`会换季 ${p.disasters} 次`); els.previewBox.innerHTML=`<div class="preview-title">从 ${plotName(p.start)} 播 ${p.count} 颗</div><div class="preview-line">路线：<strong>${routeText}</strong></div><div class="preview-line">落点：<strong>${plotName(p.last)}「${c.name}」</strong>，收成 ×<strong>${p.mult}</strong></div><div class="preview-line">季节：+${p.seasonGain} → <strong>${p.seasonAfter}/${state.seasonMax}</strong>${p.disasters?`，触发换季 ×${p.disasters}`:''}</div><div class="preview-line">${warns.length?`提示：${warns.join('；')}`:'提示：不会烂根，也不会立刻换季。'}</div>`; els.mobileSowBtn.textContent=`播 ${p.count} 颗 → ${p.last+1}号田`; }
+    function renderTools(){ els.toolList.innerHTML=''; if(!state.tools.length){ els.toolList.innerHTML='<span class="hint">本局还没有农具。丰收后可获得。</span>'; return; } for(const id of state.tools){ const s=document.createElement('span'); s.className='tool-chip'; s.title=TOOLS[id].desc; s.textContent=TOOLS[id].name; els.toolList.appendChild(s); } if(hasTool('rake')){ const s=document.createElement('span'); s.className='tool-chip'; s.textContent=`铁齿耙余${state.rakeCharges}`; els.toolList.appendChild(s); } }
+    function renderLog(){ els.log.innerHTML=state.logs.map(x=>`<p class="${x.type}">${x.msg}</p>`).join(''); }
+  })();
+  </script>
+</body>
+</html>
