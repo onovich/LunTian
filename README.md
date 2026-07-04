@@ -31,6 +31,6 @@ Double-click `OpenOnlineTest.cmd` to open the GitHub Pages URL after deployment,
 
 ## Deployment
 
-The expected Pages URL is `https://onovich.github.io/LunTian/`.<br/>**预期 GitHub Pages 地址是 `https://onovich.github.io/LunTian/`。**
+The expected Pages URL is `https://blog.onovich.com/LunTian/`.<br/>**预期 GitHub Pages 地址是 `https://blog.onovich.com/LunTian/`。**
 
 If the first deployment does not appear, check `Settings -> Pages -> Source` and select `GitHub Actions`.<br/>**如果首次部署后页面未出现，请在仓库 `Settings -> Pages -> Source` 中选择 `GitHub Actions`。**

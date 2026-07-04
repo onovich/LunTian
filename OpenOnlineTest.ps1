@@ -1,5 +1,5 @@
 param(
-  [string]$Url = "https://onovich.github.io/LunTian/",
+  [string]$Url = "https://blog.onovich.com/LunTian/",
   [switch]$DryRun
 )
 
