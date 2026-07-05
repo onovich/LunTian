@@ -109,6 +109,11 @@
     .plot.fx-harvest{ animation:harvestPulse .65s ease; }
     .plot.fx-bad,.plot.fx-disaster{ animation:shake .38s ease; }
     .plot.fx-new{ animation:newCrop .55s ease; }
+    .plot.fx-source{ animation:sourcePulse .58s ease; }
+    .plot.fx-exchange{ animation:exchangePulse .58s ease; }
+    .plot.fx-target{ animation:targetPulse .58s ease; }
+    .plot.fx-cause{ animation:causePulse .58s ease; }
+    .plot.fx-result{ animation:resultPulse .58s ease; }
     .plot:active{ transform:scale(.99); }
     .plot[data-pos="0"]{ grid-area:p0; }
     .plot[data-pos="1"]{ grid-area:p1; }
@@ -135,11 +140,37 @@
     .effect{ color:#4a3a26; font-size:11px; line-height:1.25; display:grid; gap:3px; }
     .effect b{ color:#23180f; }
     .plot-index{ position:absolute; right:7px; bottom:5px; font-size:10px; color:#9b835c; font-weight:900; opacity:.8; }
-    .float-text{ position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); pointer-events:none; z-index:6; white-space:nowrap; padding:4px 8px; border-radius:999px; font-size:13px; font-weight:950; background:rgba(255,250,235,.94); border:1px solid #dfc99f; box-shadow:0 8px 22px rgba(50,30,10,.18); animation:floatUp .72s ease forwards; }
+    .seed-shop{
+      position:relative;
+      z-index:2;
+      width:min(630px,100%);
+      margin:0 auto 8px;
+      min-height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid #d8bd88;
+      background:rgba(255,247,229,.9);
+      color:#614625;
+      font-size:12px;
+      font-weight:900;
+      text-align:center;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 4px 12px rgba(75,48,18,.08);
+    }
+    .seed-shop.fx-exchange{ border-color:#d89f39; background:#fff3d6; animation:shopPulse .62s ease; }
+    .fx-layer{ position:absolute; inset:0; z-index:8; pointer-events:none; overflow:visible; }
+    .float-text{ position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); pointer-events:none; z-index:6; white-space:nowrap; padding:4px 8px; border-radius:999px; font-size:13px; font-weight:950; background:rgba(255,250,235,.94); border:1px solid #dfc99f; box-shadow:0 8px 22px rgba(50,30,10,.18); animation:floatUp var(--float-duration, 1.5s) ease forwards; }
     .float-text.good{ color:#2d6f37; border-color:#b9dcae; background:#f0faed; }
     .float-text.bad{ color:#973523; border-color:#efb6a6; background:#fff1eb; }
     .float-text.warn{ color:#875714; border-color:#e8c47c; background:#fff8dd; }
     .float-text.blue{ color:#276284; border-color:#b5d8ec; background:#eaf7ff; }
+    .float-text.source{ color:#7a4f1d; border-color:#e0bc77; background:#fff4d8; }
+    .float-text.exchange{ color:#6b4713; border-color:#d9a13d; background:#fff0c9; }
+    .float-text.target{ color:#276284; border-color:#b5d8ec; background:#eaf7ff; }
+    .float-text.cause{ color:#875714; border-color:#e8c47c; background:#fff8dd; }
+    .float-text.result{ color:#2d6f37; border-color:#b9dcae; background:#f0faed; }
 
     .side{ display:flex; flex-direction:column; gap:10px; min-width:0; }
     .panel{ background:rgba(255,249,237,.9); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); padding:12px; }
@@ -193,6 +224,12 @@
     @keyframes sproutPulse{ 0%{filter:saturate(1);} 50%{filter:saturate(1.5) brightness(1.05); background:linear-gradient(180deg,#f5ffef,#e4f2c5);} 100%{filter:saturate(1);} }
     @keyframes harvestPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.04); box-shadow:0 0 0 6px rgba(219,178,74,.24),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
     @keyframes newCrop{ 0%{transform:scale(.96); filter:brightness(.94);} 100%{transform:scale(1); filter:brightness(1);} }
+    @keyframes sourcePulse{ 0%{transform:scale(1);} 50%{transform:scale(1.035); box-shadow:0 0 0 6px rgba(191,132,33,.24),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
+    @keyframes exchangePulse{ 0%{filter:saturate(1);} 50%{filter:saturate(1.45) brightness(1.08); box-shadow:0 0 0 6px rgba(216,159,57,.2),0 5px 0 rgba(95,61,25,.12);} 100%{filter:saturate(1);} }
+    @keyframes targetPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.03); box-shadow:0 0 0 6px rgba(49,112,151,.2),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
+    @keyframes causePulse{ 0%{filter:brightness(1);} 50%{filter:brightness(1.08); box-shadow:0 0 0 6px rgba(181,118,34,.2),0 5px 0 rgba(95,61,25,.12);} 100%{filter:brightness(1);} }
+    @keyframes resultPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.028); box-shadow:0 0 0 6px rgba(63,122,53,.2),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
+    @keyframes shopPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.02); box-shadow:0 0 0 4px rgba(216,159,57,.18),0 4px 12px rgba(75,48,18,.08);} 100%{transform:scale(1);} }
     @keyframes shake{ 10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);} 30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);} }
     @keyframes statBump{ 0%{background:#fff9ed;} 50%{background:#eff9e9;} 100%{background:#fff9ed;} }
     @keyframes seedBorn{ from{ transform:scale(.35); opacity:.2; } to{ transform:scale(1); opacity:1; } }
@@ -235,6 +272,7 @@
       .crop-name{ font-size:15px; }
       .effect{ font-size:10.5px; }
       .seed-badge{ font-size:12px; min-height:24px; padding:1px 6px; }
+      .seed-shop{ min-height:30px; margin-bottom:6px; font-size:11px; padding:5px 8px; }
       .mini-badge{ font-size:10px; min-height:20px; padding:1px 5px; }
       .hazard{ font-size:10px; padding:3px 5px; }
       .panel{ padding:10px; border-radius:18px; }
@@ -313,6 +351,7 @@
       .seed-dots span{ width:7px !important; height:7px !important; }
       .plot-index{ font-size:9px !important; right:5px !important; bottom:4px !important; }
       .float-text{ font-size:11px !important; padding:3px 6px !important; }
+      .seed-shop{ min-height:28px !important; margin-bottom:5px !important; padding:4px 7px !important; font-size:10.5px !important; }
 
       .mobile-action-bar{ position:fixed !important; left:7px !important; right:7px !important; bottom:calc(6px + env(safe-area-inset-bottom)) !important; margin:0 !important; border-radius:18px !important; padding:7px !important; backdrop-filter:blur(12px) !important; }
       .mobile-action-bar .primary-btn{ min-height:46px !important; font-size:16px !important; }

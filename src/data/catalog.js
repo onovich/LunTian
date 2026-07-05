@@ -17,7 +17,7 @@ export function createCropCatalog(effects) {
   } = effects;
 
   const CROPS = {
-        wheat:{ name:'壳麦', tags:['粮'], init:2, cap:5, sproutText:'粮仓 +1。', harvestText:'粮仓 + 本垄种子×2。',
+        wheat:{ name:'壳麦', tags:['粮'], init:2, cap:5, sproutText:'粮仓 +1。', harvestText:'粮仓 + 本垄产量×2。',
           async sprout(i){ await gainGrain(1,'壳麦发芽',i); },
           async harvest(i,m){ const s=state.plots[i].seeds; await gainGrain(s*2*m,`壳麦收成 ×${m}`,i); }
         },
@@ -31,7 +31,7 @@ export function createCropCatalog(effects) {
         },
         honey:{ name:'蜜花', tags:['花','蜜'], init:1, cap:3, sproutText:'蜂群 +1。', harvestText:'按蜂群数量入粮；邻近果类加成。',
           async sprout(i){ state.bees += 1; addLog('🐝 蜂群 +1。'); render(); bump('ecoStat'); await floatPlot(i,'🐝 蜂+1','good'); },
-          async harvest(i,m){ const fruitAdj=[mod(i-1,6),mod(i+1,6)].filter(idx=>CROPS[state.plots[idx].crop].tags.includes('果')).length; await gainGrain((state.bees + fruitAdj*2)*m,`蜜花收成：蜂${state.bees} 邻果${fruitAdj}`,i); state.flowerHarvests += m; if(hasTool('hive') && state.flowerHarvests>=3){ state.flowerHarvests-=3; for(let x=0;x<6;x++) state.plots[x].seeds=Math.min(effectiveCap(x),state.plots[x].seeds+1); addLog('🍯 蜂箱：所有田垄各添 1 颗种子。','good'); render(); await boardFloat('🍯 蜂箱群起','good',520); } }
+          async harvest(i,m){ const fruitAdj=[mod(i-1,6),mod(i+1,6)].filter(idx=>CROPS[state.plots[idx].crop].tags.includes('果')).length; await gainGrain((state.bees + fruitAdj*2)*m,`蜜花收成：蜂${state.bees} 邻果${fruitAdj}`,i); state.flowerHarvests += m; if(hasTool('hive') && state.flowerHarvests>=3){ state.flowerHarvests-=3; for(let x=0;x<6;x++) state.plots[x].seeds=Math.min(effectiveCap(x),state.plots[x].seeds+1); addLog('🍯 蜂箱：所有田垄各添 1 份产量。','good'); render(); await boardFloat('🍯 蜂箱群起','good',520); } }
         },
         scarecrow:{ name:'稻草人', tags:['器具'], init:0, cap:2, sproutText:'驱赶本垄 1 点鸟群。', harvestText:'本季鸟害削弱，并获得少量粮。',
           async sprout(i){ await reduceHazard(i,'bird',1,'稻草人立起'); },
@@ -45,15 +45,15 @@ export function createCropCatalog(effects) {
           async sprout(i){ if(state.plots[i].hazard?.type==='weed') await gainGrain(2,'野豌豆借杂草攀爬',i); else await floatPlot(i,'攀爬中','good',220); },
           async harvest(i,m){ const cleared=await reduceHazard(i,'weed',99,'野豌豆收成'); await gainGrain((cleared*3+1)*m,'野豌豆把杂草变藤架',i); }
         },
-        melon:{ name:'甜瓜', tags:['果'], init:1, cap:5, sproutText:'若有蜂群，粮仓 +1。', harvestText:'按种子数与蜂群倍率入粮。',
+        melon:{ name:'甜瓜', tags:['果'], init:1, cap:5, sproutText:'若有蜂群，粮仓 +1。', harvestText:'按产量与蜂群倍率入粮。',
           async sprout(i){ if(state.bees>0) await gainGrain(1,'甜瓜授粉',i); else await floatPlot(i,'等蜂来','warn',240); },
           async harvest(i,m){ const s=state.plots[i].seeds; await gainGrain(s*(1+Math.min(3,state.bees))*m,'甜瓜鼓胀成熟',i); }
         },
-        buckwheat:{ name:'苦荞', tags:['粮','韧'], init:3, cap:4, sproutText:'篱笆 +1。', harvestText:'粮仓 +种子，篱笆 +1。',
+        buckwheat:{ name:'苦荞', tags:['粮','韧'], init:3, cap:4, sproutText:'篱笆 +1。', harvestText:'粮仓 +产量，篱笆 +1。',
           async sprout(i){ await gainFence(1,'苦荞固土',i); },
           async harvest(i,m){ const s=state.plots[i].seeds; await gainGrain(s*m,'苦荞收成',i); await gainFence(m,'苦荞茎秆修篱',i); }
         },
-        cleanbean:{ name:'净土豆', tags:['豆','净'], init:1, cap:4, sproutText:'若本垄有田患，清除 1 点；否则粮仓 +1。', harvestText:'按种子清除田患或入粮。',
+        cleanbean:{ name:'净土豆', tags:['豆','净'], init:1, cap:4, sproutText:'若本垄有田患，清除 1 点；否则粮仓 +1。', harvestText:'按产量清除田患或入粮。',
           async sprout(i){ if(state.plots[i].hazard) await reduceHazard(i,null,1,'净土豆发芽'); else await gainGrain(1,'净土豆在净田增产',i); },
           async harvest(i,m){ const s=state.plots[i].seeds; const cleared=await reduceHazard(i,null,s*m,'净土豆收成'); await gainGrain(Math.max(1,s*m+cleared),'净土豆入仓',i); }
         },
@@ -80,11 +80,11 @@ export function createHazardCatalog(effects) {
   } = effects;
 
   const HAZARDS = {
-        pest:{ name:'虫害', icon:'🐛', desc:'换季吃种子；无种伤篱笆', async act(i,h){ const eat=Math.min(state.plots[i].seeds,h.pressure); state.plots[i].seeds-=eat; if(eat){ addLog(`🐛 ${plotName(i)} 虫害吃掉 ${eat} 颗种子。`,'warn'); render(); await floatPlot(i,`-${eat}种`,'warn'); } const dmg=h.pressure-eat; if(dmg) await damageFence(dmg,`${plotName(i)} 虫害啃坏篱笆`,i); } },
+        pest:{ name:'虫害', icon:'🐛', desc:'换季吃产量；无产量伤篱笆', async act(i,h){ const eat=Math.min(state.plots[i].seeds,h.pressure); state.plots[i].seeds-=eat; if(eat){ addLog(`🐛 ${plotName(i)} 虫害吃掉 ${eat} 份产量。`,'warn'); render(); await floatPlot(i,`-${eat}产量`,'warn'); } const dmg=h.pressure-eat; if(dmg) await damageFence(dmg,`${plotName(i)} 虫害啃坏篱笆`,i); } },
         drought:{ name:'旱斑', icon:'☀️', desc:'换季消耗蓄水；缺水伤篱笆', async act(i,h){ const p=state.plots[i]; const use=Math.min(p.water,h.pressure); p.water-=use; if(use){ addLog(`☀️ ${plotName(i)} 旱斑被蓄水抵消 ${use}。`,'good'); render(); await floatPlot(i,`蓄水-${use}`,'blue'); } const dmg=h.pressure-use; if(dmg) await damageFence(dmg,`${plotName(i)} 旱情裂开田埂`,i); } },
         bird:{ name:'鸟群', icon:'🐦', desc:'换季偷粮，可被稻草人抵消', async act(i,h){ let steal=h.pressure*2; const block=Math.min(steal,state.birdGuard); state.birdGuard-=block; steal-=block; if(block){ addLog(`🪶 稻草人抵消鸟害 ${block}。`,'good'); render(); await floatPlot(i,`挡${block}`,'good'); } if(steal>0){ state.grain=Math.max(0,state.grain-steal); addLog(`🐦 鸟群偷走 ${steal} 粮。`,'bad'); render(); bump('grainStat'); await floatPlot(i,`-${steal}粮`,'bad'); } } },
         weed:{ name:'杂草', icon:'🌿', desc:'占容量；换季向下一垄扩散', async act(i,h){ const next=mod(i+1,6); await addHazard(next,'weed',1,true); addLog(`🌿 ${plotName(i)} 杂草向 ${plotName(next)} 蔓延。`,'warn'); } },
-        frost:{ name:'霜冻', icon:'❄️', desc:'换季冻掉种子', async act(i,h){ const lose=Math.min(state.plots[i].seeds,h.pressure); state.plots[i].seeds-=lose; if(lose){ addLog(`❄️ ${plotName(i)} 霜冻冻掉 ${lose} 颗种子。`,'warn'); render(); await floatPlot(i,`-${lose}种`,'warn'); } else await damageFence(1,`${plotName(i)} 霜冻压坏空田`,i); } },
+        frost:{ name:'霜冻', icon:'❄️', desc:'换季冻掉产量', async act(i,h){ const lose=Math.min(state.plots[i].seeds,h.pressure); state.plots[i].seeds-=lose; if(lose){ addLog(`❄️ ${plotName(i)} 霜冻冻掉 ${lose} 份产量。`,'warn'); render(); await floatPlot(i,`-${lose}产量`,'warn'); } else await damageFence(1,`${plotName(i)} 霜冻压坏空田`,i); } },
         mold:{ name:'霉病', icon:'🦠', desc:'换季增加腐烂；腐烂过多伤篱笆', async act(i,h){ state.rot+=h.pressure; addLog(`🦠 ${plotName(i)} 霉病让腐烂 +${h.pressure}。`,'warn'); render(); bump('ecoStat'); await floatPlot(i,`腐+${h.pressure}`,'warn'); if(state.rot>=6){ await damageFence(1,'腐烂堆积过多',i); state.rot=4; render(); } } }
       };
 
@@ -93,11 +93,11 @@ export function createHazardCatalog(effects) {
 
 export const TOOLS = {
       emptySickle:{name:'空仓镰', desc:'空垄收成额外 +1 次。'},
-      sunshade:{name:'日影伞', desc:'每次播种前 2 颗不推进季节轮。'},
+      sunshade:{name:'日影伞', desc:'每次轮田前 2 份不推进季节轮。'},
       rake:{name:'铁齿耙', desc:'每季前 3 次烂根不伤篱笆，改为粮仓 +2。'},
       well:{name:'深井', desc:'每次清空起点垄，篱笆 +1。'},
       hive:{name:'蜂箱', desc:'每 3 次花类收成，所有垄各添 1 种。'},
-      wheel:{name:'旧水车', desc:'正好播 4 颗时，收成额外 +1 次。'},
+      wheel:{name:'旧水车', desc:'正好轮田 4 份时，收成额外 +1 次。'},
       rotation:{name:'轮作册', desc:'连续收成不同主标签时，粮仓 +2。'},
       cellar:{name:'地窖', desc:'每季开始保留 4 点粮仓底数。'}
     };
