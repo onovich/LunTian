@@ -1,0 +1,17 @@
+{
+    "schemaVersion":  1,
+    "initializedMarker":  "codex-project-git-workflow: initialized",
+    "initializedAt":  "2026-07-05 13:10:33 +08:00",
+    "projectName":  "LunTian",
+    "repoRoot":  "D:/WebProjects/LunTian",
+    "safeDirectory":  "D:/WebProjects/LunTian",
+    "statusCommand":  "git -c safe.directory=D:/WebProjects/LunTian status --short --branch",
+    "validationCommands":  [
+
+                           ],
+    "stagingPolicy":  "ask each time",
+    "commitCommand":  "",
+    "pushCommand":  "git -c safe.directory=D:/WebProjects/LunTian push -u origin HEAD",
+    "docsRequirement":  "",
+    "forbiddenCommands":  ""
+}
