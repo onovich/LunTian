@@ -161,7 +161,7 @@
     }
     .seed-shop.fx-exchange{ border-color:#d89f39; background:#fff3d6; animation:shopPulse .62s ease; }
     .fx-layer{ position:absolute; inset:0; z-index:8; pointer-events:none; overflow:visible; }
-    .float-text{ position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); pointer-events:none; z-index:6; white-space:nowrap; padding:4px 8px; border-radius:999px; font-size:13px; font-weight:950; background:rgba(255,250,235,.94); border:1px solid #dfc99f; box-shadow:0 8px 22px rgba(50,30,10,.18); animation:floatUp var(--float-duration, 1.5s) ease forwards; }
+    .float-text{ position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); pointer-events:none; z-index:6; white-space:nowrap; padding:4px 8px; border-radius:999px; font-size:13px; font-weight:950; background:rgba(255,250,235,.94); border:1px solid #dfc99f; box-shadow:0 8px 22px rgba(50,30,10,.18); animation:floatUp var(--float-duration, 2.6s) ease forwards; }
     .float-text.good{ color:#2d6f37; border-color:#b9dcae; background:#f0faed; }
     .float-text.bad{ color:#973523; border-color:#efb6a6; background:#fff1eb; }
     .float-text.warn{ color:#875714; border-color:#e8c47c; background:#fff8dd; }
@@ -219,7 +219,7 @@
     .reward span{ font-size:12px; line-height:1.45; color:#5c4a34; }
     .reward em{ font-style:normal; color:#2e7d4f; font-weight:900; font-size:12px; }
 
-    @keyframes floatUp{ 0%{opacity:0; transform:translate(-50%,8px) scale(.88);} 18%{opacity:1; transform:translate(-50%,-8px) scale(1.05);} 100%{opacity:0; transform:translate(-50%,-42px) scale(.98);} }
+    @keyframes floatUp{ 0%{opacity:0; transform:translate(-50%,8px) scale(.88);} 12%{opacity:1; transform:translate(-50%,-6px) scale(1.04);} 72%{opacity:1; transform:translate(-50%,-18px) scale(1);} 100%{opacity:0; transform:translate(-50%,-42px) scale(.98);} }
     @keyframes seedPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.025); box-shadow:0 0 0 5px rgba(113,168,77,.18),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }
     @keyframes sproutPulse{ 0%{filter:saturate(1);} 50%{filter:saturate(1.5) brightness(1.05); background:linear-gradient(180deg,#f5ffef,#e4f2c5);} 100%{filter:saturate(1);} }
     @keyframes harvestPulse{ 0%{transform:scale(1);} 50%{transform:scale(1.04); box-shadow:0 0 0 6px rgba(219,178,74,.24),0 5px 0 rgba(95,61,25,.12);} 100%{transform:scale(1);} }

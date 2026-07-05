@@ -3,6 +3,7 @@ import { STEP, calculatePreview, clamp, createInitialState, mod, rand, scorePrev
 
 export function createLunTianGame() {
   const state = createInitialState();
+      const FLOAT_DISPLAY_MS = 2600;
       const els = {};
       let CROPS;
       let HAZARDS;
@@ -97,7 +98,7 @@ export function createLunTianGame() {
         return preview.route.map(i=>`${plotName(i)}${seedNameById(state.plots[i].crop)}`).join(' -> ');
       }
 
-      async function floatPlot(i,text,kind='good',ms=STEP,displayMs=1500){
+      async function floatPlot(i,text,kind='good',ms=STEP,displayMs=FLOAT_DISPLAY_MS){
         renderBoard(); renderStats(); renderPreview(); renderTools(); renderLog(); renderObjective();
         const el=els.board.querySelector(`[data-pos="${i}"]`); if(!el){ await sleep(ms); return; }
         const cls=kind==='bad'?'fx-bad'
@@ -136,14 +137,13 @@ export function createLunTianGame() {
       async function boardFloat(text,kind='good',ms=STEP){
         const i=state.selected ?? 0; await floatPlot(i,text,kind,ms);
       }
-      async function showExchangeStep(start,target,step,total,productName,seedName){
-        await floatPlot(start,`采收 ${step}/${total}`,'source',460);
+      async function showExchangeStep(start,target,step,productName,seedName){
+        await floatPlot(start,`第${step}份产物送种铺`,'source',560,2800);
         addLog(`${productName}进入种铺 -> 换出${seedName} -> ${plotName(target)}${crop(target).name}发芽。`);
         renderLog();
-        await floatPlot(start,`${productName} -> 种铺`,'exchange',240);
         setSeedShop(`种铺换种：${productName.replace('产物','')} -> ${seedName}`,'fx-exchange');
-        await sleep(180);
-        await floatPlot(target,`${seedName}入垄`,'target',480);
+        await sleep(260);
+        await floatPlot(target,`${seedName}播下`,'target',620,2800);
       }
       async function gainGrain(n,why='',i=null){ n=Math.max(0,Math.floor(n)); if(!n) return; state.grain+=n; addLog(`🌾 粮仓 +${n}${why?`（${why}）`:''}`,'good'); render(); bump('grainStat'); if(i!==null) await floatPlot(i,`+${n}粮`,'result'); else await sleep(STEP/2); }
       async function gainFence(n,why='',i=null){ n=Math.max(0,Math.floor(n)); if(!n) return; const before=state.fence; state.fence=Math.min(state.maxFence,state.fence+n); const got=state.fence-before; if(!got) return; addLog(`🪵 篱笆 +${got}${why?`（${why}）`:''}`,'good'); render(); bump('fenceStat'); if(i!==null) await floatPlot(i,`+${got}篱`,'result'); else await sleep(STEP/2); }
@@ -170,14 +170,14 @@ export function createLunTianGame() {
         const sourceProduct=productNameById(sourceCropId);
         addLog(`🧺 采收 ${plotName(start)}「${sourceCropName}」${count} 份产物，送入种铺换种。`);
         setSeedShop(`种铺待收：${count} 份${sourceProduct}`,'fx-exchange');
-        render(); await floatPlot(start,`采收${count}份`,'source',540);
+        render(); await floatPlot(start,`采收 ${count} 份${sourceCropName}`,'source',760,3200);
         state.plots[start].seeds=0; render(); await sleep(160);
         if(hasTool('well')) await gainFence(1,'深井：清空起点垄',start);
         let last=start,lastWasEmpty=false,harvestMult=1,disastersDue=0;
         for(let k=1;k<=count;k++){
           const i=mod(start+state.direction*k,6); last=i; const wasEmpty=state.plots[i].seeds===0; if(k===count) lastWasEmpty=wasEmpty;
           const targetSeed=seedNameById(state.plots[i].crop);
-          await showExchangeStep(start,i,k,count,sourceProduct,targetSeed);
+          await showExchangeStep(start,i,k,sourceProduct,targetSeed);
           await placeSeed(i,k,targetSeed);
           if(state.runOver) break;
           if(!(hasTool('sunshade') && k<=2)){ state.season+=1; addLog(`🌓 轮田推进季节 +1。`); render(); bump('seasonStat'); await sleep(220); if(state.season>=state.seasonMax){ disastersDue+=Math.floor(state.season/state.seasonMax); state.season=state.season%state.seasonMax; addLog('🌘 季节轮满：本次轮田结束后结算田患。','warn'); render(); await boardFloat('即将换季','cause',420); } }
@@ -196,7 +196,7 @@ export function createLunTianGame() {
         maybeAdvanceTutorial('sow');
         state.resolving=false; render();
       }
-      async function placeSeed(i,k,seedName=seedNameById(state.plots[i].crop)){ const cap=effectiveCap(i); if(state.plots[i].seeds+1>cap){ state.rot+=1; addLog(`🟤 ${plotName(i)} 容量 ${cap}，${seedName}烂根。`,'warn'); render(); bump('ecoStat'); await floatPlot(i,'烂根','bad',520); if(hasTool('rake') && state.rakeCharges>0){ state.rakeCharges-=1; await gainGrain(2,'铁齿耙把烂根翻成腐肥',i); } else await damageFence(1,`${plotName(i)} 超过容量烂根`,i); return; } state.plots[i].seeds+=1; addLog(`${seedName}播入 ${plotName(i)}，产量 ${state.plots[i].seeds}/${effectiveCap(i)}。`,'good'); render(); await floatPlot(i,`产量 ${state.plots[i].seeds}/${effectiveCap(i)}`,'target',360); await crop(i).sprout(i); }
+      async function placeSeed(i,k,seedName=seedNameById(state.plots[i].crop)){ const cap=effectiveCap(i); if(state.plots[i].seeds+1>cap){ state.rot+=1; addLog(`🟤 ${plotName(i)} 容量 ${cap}，${seedName}烂根。`,'warn'); render(); bump('ecoStat'); await floatPlot(i,'烂根','bad',520); if(hasTool('rake') && state.rakeCharges>0){ state.rakeCharges-=1; await gainGrain(2,'铁齿耙把烂根翻成腐肥',i); } else await damageFence(1,`${plotName(i)} 超过容量烂根`,i); return; } state.plots[i].seeds+=1; addLog(`${seedName}播入 ${plotName(i)}，产量 ${state.plots[i].seeds}/${effectiveCap(i)}。`,'good'); render(); await sleep(220); await crop(i).sprout(i); }
       async function harvest(i,mult){ const c=crop(i); addLog(`🧺 落点 ${plotName(i)}「${c.name}」重点结算：收成 x${mult}。`,'good'); render(); await floatPlot(i,`收成x${mult}`,'harvest',640); await c.harvest(i,mult); if(hasTool('rotation')){ const tag=c.tags[0]; const last=state.harvestedTags[state.harvestedTags.length-1]; if(last && last!==tag) await gainGrain(2,'轮作册：连续不同作物',i); state.harvestedTags.push(tag); state.harvestedTags=state.harvestedTags.slice(-3); }
         state.discard.push(state.plots[i].crop); const keepWater=Math.max(0,state.plots[i].water-1); const keepHazard=state.plots[i].hazard; const newId=drawCrop(); state.plots[i]={crop:newId,seeds:CROPS[newId].init,water:keepWater,hazard:keepHazard}; addLog(`🌱 ${plotName(i)} 翻出新作物「${CROPS[newId].name}」。`); render(); await floatPlot(i,`新：${CROPS[newId].name}`,'new',560); }
       async function processDisaster(){ if(state.runOver) return; addLog('🌘 换季：田患开始逐个结算。','warn'); render(); await boardFloat('换季结算','warn',520); for(let i=0;i<6;i++){ const h=state.plots[i].hazard; if(!h) continue; addLog(`${HAZARDS[h.type].icon} ${plotName(i)} 的${HAZARDS[h.type].name}发动。`,'warn'); render(); await floatPlot(i,`${HAZARDS[h.type].icon}发动`,'warn',520); await HAZARDS[h.type].act(i,h); if(state.runOver) break; } if(state.runOver) return; await addRandomHazard(1+(Math.random()<0.18?1:0)); addLog('🌫️ 新的田患在田边滋生。','warn'); render(); }
