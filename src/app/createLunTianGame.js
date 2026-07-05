@@ -137,12 +137,32 @@ export function createLunTianGame() {
       async function boardFloat(text,kind='good',ms=STEP){
         const i=state.selected ?? 0; await floatPlot(i,text,kind,ms);
       }
+      async function floatSeedShop(text,ms=STEP,displayMs=FLOAT_DISPLAY_MS){
+        if(!els.seedShop){ await sleep(ms); return; }
+        els.seedShop.classList.remove('fx-exchange');
+        void els.seedShop.offsetWidth;
+        els.seedShop.classList.add('fx-exchange');
+        const layer=els.fxLayer || els.seedShop;
+        const span=document.createElement('span');
+        span.className='float-text exchange';
+        span.textContent=text;
+        span.style.setProperty('--float-duration', `${displayMs}ms`);
+        if(layer===els.fxLayer){
+          const shopRect=els.seedShop.getBoundingClientRect();
+          const layerRect=layer.getBoundingClientRect();
+          span.style.left=`${shopRect.left - layerRect.left + shopRect.width/2}px`;
+          span.style.top=`${shopRect.top - layerRect.top + shopRect.height/2}px`;
+        }
+        layer.appendChild(span);
+        window.setTimeout(()=>span.remove(), displayMs + 120);
+        await sleep(ms);
+      }
       async function showExchangeStep(start,target,step,productName,seedName){
-        await floatPlot(start,`第${step}份产物送种铺`,'source',560,2800);
+        await floatPlot(start,`第${step}份产物送种铺`,'source',760,3000);
         addLog(`${productName}进入种铺 -> 换出${seedName} -> ${plotName(target)}${crop(target).name}发芽。`);
         renderLog();
         setSeedShop(`种铺换种：${productName.replace('产物','')} -> ${seedName}`,'fx-exchange');
-        await sleep(260);
+        await floatSeedShop(`从种铺换取 1 份${seedName}`,760,3000);
         await floatPlot(target,`${seedName}播下`,'target',620,2800);
       }
       async function gainGrain(n,why='',i=null){ n=Math.max(0,Math.floor(n)); if(!n) return; state.grain+=n; addLog(`🌾 粮仓 +${n}${why?`（${why}）`:''}`,'good'); render(); bump('grainStat'); if(i!==null) await floatPlot(i,`+${n}粮`,'result'); else await sleep(STEP/2); }
