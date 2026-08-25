@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Mancala-like sowing roguelike card prototype.",
-  "homepage": "https://blog.onovich.com/LunTian/",
+  "homepage": "https://game.onovich.com/LunTian/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
